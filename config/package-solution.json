@@ -1,0 +1,13 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "time-sheet-client-side-solution",
+    "id": "b82fcc0c-73cb-4b42-93ce-0e84e79ccc7b",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "isDomainIsolated": false
+  },
+  "paths": {
+    "zippedPackage": "solution/time-sheet.sppkg"
+  }
+}

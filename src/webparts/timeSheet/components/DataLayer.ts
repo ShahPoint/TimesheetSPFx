@@ -86,6 +86,7 @@ export default class DataLayer {
         { displayName: "ProjectCode/Client", fieldId: "ProjectCode/Client" },
         { displayName: "ProjectCode/ContractorRate", fieldId: "ProjectCode/ContractorRate" },
         { displayName: "ProjectCode/BillableRate", fieldId: "ProjectCode/BillableRate" },
+        { displayName: "Contractor", fieldId: "Contractor" },
         { displayName: "Details", fieldId: "Details" },
         { displayName: "InternalNotes", fieldId: "InternalNotes" },
         { displayName: "Created", fieldId: "Created" },
@@ -104,7 +105,9 @@ export default class DataLayer {
         { displayName: "Client", fieldId: "Client" },
         { displayName: "Id", fieldId: "Id" },
         { displayName: "Project", fieldId: "Project" },
-        { displayName: "Contractor/EMail", fieldId: "Contractor/EMail" }
+        { displayName: "Contractor/EMail", fieldId: "Contractor/EMail" },
+        { displayName: "Contractor/FirstName", fieldId: "Contractor/FirstName" },
+        { displayName: "Contractor/LastName", fieldId: "Contractor/LastName" }
     ];
 
     private static UploadColumns: ISPListField[] = [
@@ -121,6 +124,7 @@ export default class DataLayer {
         { displayName: "Approved Time", fieldId: "ApprovedDate" },
         { displayName: "Id", fieldId: "Id" },
         { displayName: "ContractorPay", fieldId: "ContractorPay" },
+        { displayName: "Contractor", fieldId: "Contractor" },
     ];
 
     private static InvoiceColumns: ISPListField[] = [

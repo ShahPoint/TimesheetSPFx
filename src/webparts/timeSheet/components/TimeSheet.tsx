@@ -242,7 +242,17 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             dataType="text"
             cellTemplate={($container, { data }) => {
               ReactDom.render((<span>
-                {data.Author.FirstName} {data.Author.LastName}
+                {data.Contractor || (data.Author.FirstName + " " + data.Author.LastName)}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            caption="Uploaded By"
+            dataType="text"
+            visible={false}
+            cellTemplate={($container, { data }) => {
+              ReactDom.render((<span>
+                {data.Author.FirstName + " " + data.Author.LastName}
               </span>), $container);
             }}
           ></Column>

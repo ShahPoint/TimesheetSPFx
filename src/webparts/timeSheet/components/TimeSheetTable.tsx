@@ -188,7 +188,7 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
         dataType="string"
         cellTemplate={($container, { data }) => {
           ReactDom.render((<span>
-            {data.Author.FirstName} {data.Author.LastName}
+            {data.Contractor || (data.Author.FirstName + " " + data.Author.LastName)}
           </span>), $container);
         }}
       ></Column>

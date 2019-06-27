@@ -88,7 +88,9 @@ export default class Import extends React.Component<IImportProps, any> {
             let project = projects.filter(p => p.ProjectCode == item.ProjectCode)[0];
             item.Project = project;
 
-            if (project.Contractor.EMail != user.Email)
+            if (!project)
+              itemValidation.errors.push({ message: `Invalid project code '${item.ProjectCode}'`, level: 0 });
+            else if (project.Contractor.EMail != user.Email)
               itemValidation.errors.push({ message: "You are not the assigned contractor for this project", level: 10 });
           }
           if (!item.Details)
@@ -113,6 +115,7 @@ export default class Import extends React.Component<IImportProps, any> {
   private SubmitData(list: TimesheetRow[], upload: TimesheetUpload) {
     let web = new Web(this.props.siteUrl);
     // let batch = web.createBatch();
+    let contractor = list[0].Project.Contractor.FirstName + " " + list[0].Project.Contractor.LastName;
 
     let promise = web.lists.getByTitle(this.props.dataLayer.config.UploadsListName)
       .items.add({
@@ -120,7 +123,8 @@ export default class Import extends React.Component<IImportProps, any> {
         EntryRangeStart: list.sort((a, b) => a.Date < b.Date ? -1 : 1)[0].Date,
         EntryRangeEnd: list.sort((a, b) => a.Date > b.Date ? -1 : 1)[0].Date,
         TotalHours: list.map(v => v.Hours).reduce((pv, cv) => pv + cv),
-        ContractorPay: list.reduce((pv, v) => pv + parseFloat(v.Project.ContractorRate) * v.Hours, 0)
+        ContractorPay: list.reduce((pv, v) => pv + parseFloat(v.Project.ContractorRate) * v.Hours, 0),
+        Contractor: contractor
       })
       .then(({ data, item }) => {
         return item.attachmentFiles.add(upload.FileName, upload.FileData).then(() => data.Id);
@@ -128,6 +132,7 @@ export default class Import extends React.Component<IImportProps, any> {
       .then((uploadId) => {
 
         let batch = web.createBatch();
+
 
         list.forEach((item) => {
           web.lists.getByTitle(this.props.timesheetListName)
@@ -139,7 +144,8 @@ export default class Import extends React.Component<IImportProps, any> {
               ProjectCodeId: item.Project.Id,
               Details: item.Details,
               InternalNotes: item.InternalNotes,
-              UploadId: uploadId
+              UploadId: uploadId,
+              Contractor: item.Project.Contractor.FirstName + " " + item.Project.Contractor.LastName
             });
         });
 

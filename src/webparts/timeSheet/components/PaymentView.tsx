@@ -18,17 +18,15 @@ export default class PaymentView extends React.Component<IPaymentProps, any> {
   public state: any = {
     payment: {},
     timesheetRows: [],
-    errors: []
+    errors: [],
+    Comment: ""
   };
-
-  private Comment: string;
 
   private GetData() {
     let promise = this.props.dataLayer.web.lists.getByTitle(this.props.dataLayer.config.PaymentsListName).items.getById(this.props.paymentId).get()
       .then((data) => {
-        this.Comment = data.Comment || "";
         return this.props.dataLayer.GetTimesheetEntries(SPFilterTree.RepeatingTree(data.TimesheetEntryIds.map(s => new SPFilter("Id", "eq", `'${s}'`)), "or"))
-          .then((rows) => { return { timesheetRows: rows, payment: data }; });
+          .then((rows) => { return { timesheetRows: rows, payment: data, Comment: data.Comment || "" }; });
       })
       .then(data => {
         this.setState(data, () => this.forceUpdate());
@@ -42,10 +40,19 @@ export default class PaymentView extends React.Component<IPaymentProps, any> {
     let promise = this.props.dataLayer.web.lists.getByTitle(this.props.dataLayer.config.PaymentsListName).items.getById(this.props.paymentId)
       .update({
         Status: status,
-        Comment: this.Comment
+        Comment: this.state.Comment
       })
       .then(() => {
         this.props.ChangeViewState("payments");
+      });
+
+    return promise;
+  }
+
+  private SaveComment() {
+    let promise = this.props.dataLayer.web.lists.getByTitle(this.props.dataLayer.config.PaymentsListName).items.getById(this.props.paymentId)
+      .update({
+        Comment: this.state.Comment
       });
 
     return promise;
@@ -78,8 +85,8 @@ export default class PaymentView extends React.Component<IPaymentProps, any> {
         </div>
         <br />
         <div>
-          <label>Comment</label>
-          {this.state.payment ? <textarea rows={2} className="form-control" onChange={(e) => this.Comment = e.currentTarget.value}>{this.Comment}</textarea> : null}
+          <label>Comment <button className="btn btn-sm" onClick={() => this.SaveComment()}>Save</button></label>
+          {this.state.payment ? <textarea rows={2} className="form-control" value={this.state.Comment} onChange={(e) => this.setState({ Comment: e.currentTarget.value }) }></textarea> : null}
         </div>
         <br />
         <button className={`btn btn-primary`} onClick={() => this.props.ChangeViewState("payments")}>Cancel</button>

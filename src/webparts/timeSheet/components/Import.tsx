@@ -16,12 +16,6 @@ export interface IImportProps {
   ChangeViewState: (view: string) => void;
 }
 
-interface IValidationError {
-  csvRow: number;
-  message: string;
-  item: any;
-}
-
 export default class Import extends React.Component<IImportProps, any> {
 
   public state: any = {
@@ -75,34 +69,34 @@ export default class Import extends React.Component<IImportProps, any> {
           let valid = true;
 
           let itemValidation = {
-            messages: [],
+            errors: [],
             csvRow: csvRow
           };
 
           if (isNaN(item.Date.getTime()) || isNaN(item.StartTime.getTime()) || isNaN(item.EndTime.getTime())) {
             if (isNaN(item.Date.getTime()))
-              itemValidation.messages.push("Date is required");
+              itemValidation.errors.push({ message: "Date is required", level: 0 });
             if (isNaN(item.StartTime.getTime()))
-              itemValidation.messages.push("Start Time is required");
+              itemValidation.errors.push({ message: "Start Time is required", level: 0 });
             if (isNaN(item.EndTime.getTime()))
-              itemValidation.messages.push("End Time is required");
+              itemValidation.errors.push({ message: "End Time is required", level: 0 });
           } else if (item.EndTime < item.StartTime)
-            itemValidation.messages.push("End Time cannot be before Start Time. If this was an overnight log, create a new entry for the overflow into the next day");
+            itemValidation.errors.push({ message: "End Time cannot be before Start Time. If this was an overnight log, create a new entry for the overflow into the next day", level: 0 });
           if (!item.ProjectCode)
-            itemValidation.messages.push("Project Code is required");
+            itemValidation.errors.push({ message: "Project Code is required", level: 0 });
           else {
             let project = projects.filter(p => p.ProjectCode == item.ProjectCode)[0];
             item.Project = project;
 
             if (project.Contractor.EMail != user.Email)
-              itemValidation.messages.push("Invalid project code - you are not the assigned contractor");
+              itemValidation.errors.push({ message: "You are not the assigned contractor for this project", level: 10 });
           }
           if (!item.Details)
-            itemValidation.messages.push("Details are required");
+            itemValidation.errors.push({ message: "Details are required", level: 0 });
           if (item.Hours > 12)
-            itemValidation.messages.push("Cannot log more than 12 hours in a single record - split this line into two entries");
+            itemValidation.errors.push({ message: "Cannot log more than 12 hours in a single record - split this line into two entries", level: 0 });
 
-          valid = itemValidation.messages.length == 0;
+          valid = itemValidation.errors.length == 0;
           item.Validation = itemValidation;
           item.Valid = valid;
         }
@@ -162,6 +156,13 @@ export default class Import extends React.Component<IImportProps, any> {
     return promise;
   }
 
+  private ErrorColor(level: number) {
+    if (level < 10) return "red";
+    else if (level < 20) return "orange";
+    else if (level < 30) return "dodgerblue";
+    else return "black";
+  }
+
   public render(): React.ReactElement<IImportProps> {
     let data = {};
     let controls = [];
@@ -195,12 +196,12 @@ export default class Import extends React.Component<IImportProps, any> {
           <b>{k || "[Missing Date]"} ({isNaN(ec) ? "---" : ec} hrs)</b>
           <ul>
             {entries[k].map(v => (
-              <li style={{ color: v.Valid === false ? "red" : "inherit", cursor: "pointer" }}>
+              <li style={{ color: v.Valid === false ? "inherit" : "inherit", cursor: "pointer" }}>
                 {isNaN(v.Hours) ? "---" : v.Hours} hrs - ({v.StartTime ? v.StartTime.toLocaleTimeString() : "Invalid Time"} - {v.EndTime ? v.EndTime.toLocaleTimeString() : "Invalid Time"}) - {v.Details}
                 <span style={{ display: "block" }} hidden={v.Valid}>
                   {`Row ${v.Validation.csvRow}`}
                   <ul className="fa-ul">
-                    {v.Validation.messages.map(m => <li><i className={`fa fa-li fa-exclamation-triangle`} style={{ fontSize: "small", top: ".75em", left: "-2.55em" }}></i>{m}</li>)}
+                    {v.Validation.errors.map(m => <li style={{ color: this.ErrorColor(m.level) }}><i className={`fa fa-li fa-exclamation-triangle`} style={{ fontSize: "small", top: ".75em", left: "-2.55em" }}></i>{m.message}</li>)}
                   </ul>
                 </span>
               </li>
@@ -214,6 +215,8 @@ export default class Import extends React.Component<IImportProps, any> {
         {entryData.map(v => (<div style={{ display: "block", marginTop: "10px", marginLeft: "20px" }}>{v}</div>))}
       </div>));
     }
+
+    let isValid = this.state.json != null && [].concat.apply([], this.state.json.map(j => j.Validation.errors)).filter(e => e.level < 10).length == 0 && this.state.additionalValidations.length == 0;
 
     return (
       <div>
@@ -229,7 +232,7 @@ export default class Import extends React.Component<IImportProps, any> {
         </ul>
         <button className={`btn btn-primary`} onClick={() => this.props.ChangeViewState("userDisplay")}>Cancel</button>
         &emsp;
-          <button className={`btn btn-primary`} disabled={this.state.json === null || this.state.json.filter(v => v.Valid === false).length > 0 || this.state.additionalValidations.length > 0} onClick={() => this.SubmitData(this.state.json, this.state.upload)}>Submit Hours</button>
+          <button className={`btn btn-primary`} disabled={!isValid} onClick={() => this.SubmitData(this.state.json, this.state.upload)}>Submit Hours</button>
       </div>
     );
   }

@@ -19,10 +19,12 @@ export default class QuickView extends React.Component<IQuickViewProps, any> {
 
     public state: {
       json: TimesheetRow[],
-      upload: TimesheetUpload
+      upload: TimesheetUpload,
+      status: string
     } = {
       json: null,
-      upload: null
+      upload: null,
+      status: null
     };
 
     private Approve(status: "Approved" | "Denied" | "Pending") {
@@ -70,6 +72,7 @@ export default class QuickView extends React.Component<IQuickViewProps, any> {
             dataLayer: this.props.dataLayer,
             fileData: data.File,
           });
+          this.setState({ status: data.Status });
           return this.props.dataLayer.GetTimesheetEntries(new SPFilter("UploadId", "eq", this.props.uploadId));
         })
         .then((timesheetData) => {
@@ -89,9 +92,9 @@ export default class QuickView extends React.Component<IQuickViewProps, any> {
             <div hidden={!this.props.admin}>
               <button className="btn btn-primary" onClick={() => { this.props.ChangeViewState("display"); }}>Cancel</button>
               &emsp;
-              <button className="btn btn-warning" onClick={() => { this.Approve("Denied"); }}>Deny</button>
+              <button className="btn btn-warning" onClick={() => { this.Approve("Denied"); }} disabled={this.state.status == "Denied"}>{this.state.status == "Denied" ? "Denied" : "Deny"}</button>
               &emsp;
-              <button className="btn btn-success" onClick={() => { this.Approve("Approved"); }}>Approve</button>
+              <button className="btn btn-success" onClick={() => { this.Approve("Approved"); }} disabled={this.state.status == "Approved"}>{this.state.status == "Approved" ? "Approved" : "Approve"}</button>
             </div>
           </div>
         </div>

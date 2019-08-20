@@ -8,6 +8,7 @@ import { sp, Web, Items } from '@pnp/sp';
 export interface ITimeSheetDataProps {
   items: Promise<any[]>;
   customButtons?: ITableButton[];
+  summary?: any;
   OnCustomExport?: (d: any) => void;
 }
 
@@ -30,41 +31,42 @@ export default class TimeSheet extends React.Component<ITimeSheetDataProps, any>
           showCheckBoxesMode: "always"
         }}
         OnCustomExport={this.props.OnCustomExport}
-        summary={
-          {
-            totalItems: [
-              { name: "custom", summaryType: "custom" },
-            ],
-            calculateCustomSummary: (options) => {
-              // Calculating "customSummary1"
-              if (options.name == "custom") {
-                switch (options.summaryProcess) {
-                  case "start":
-                    options.totalValue = {
-                      records: 0,
-                      hours: 0,
-                      maxDate: null,
-                      minDate: null
-                    };
-                    break;
-                  case "calculate":
-                    options.totalValue.records++;
-                    options.totalValue.hours += parseFloat(options.value.Hours);
-                    if (options.totalValue.maxDate == null || options.totalValue.maxDate < Date.parse(options.value.Date))
-                      options.totalValue.maxDate = Date.parse(options.value.Date);
-                    if (options.totalValue.minDate == null || options.totalValue.minDate > Date.parse(options.value.Date))
-                      options.totalValue.minDate = Date.parse(options.value.Date);
-                    break;
-                  case "finalize":
-                    let daySpan = (options.totalValue.maxDate - options.totalValue.minDate) / 3600000 / 24;
-                    options.totalValue = `# Records: ${options.totalValue.records} | Total Hours: ${options.totalValue.hours} | ${daySpan} day range`;
-                    // Assigning the final value to "totalValue" here
-                    break;
-                }
-              }
-            }
-          }
-        }
+        summary={this.props.summary || {}}
+        // summary={
+        //   {
+        //     totalItems: [
+        //       { name: "custom", summaryType: "custom" },
+        //     ],
+        //     calculateCustomSummary: (options) => {
+        //       // Calculating "customSummary1"
+        //       if (options.name == "custom") {
+        //         switch (options.summaryProcess) {
+        //           case "start":
+        //             options.totalValue = {
+        //               records: 0,
+        //               hours: 0,
+        //               maxDate: null,
+        //               minDate: null
+        //             };
+        //             break;
+        //           case "calculate":
+        //             options.totalValue.records++;
+        //             options.totalValue.hours += parseFloat(options.value.Hours);
+        //             if (options.totalValue.maxDate == null || options.totalValue.maxDate < Date.parse(options.value.Date))
+        //               options.totalValue.maxDate = Date.parse(options.value.Date);
+        //             if (options.totalValue.minDate == null || options.totalValue.minDate > Date.parse(options.value.Date))
+        //               options.totalValue.minDate = Date.parse(options.value.Date);
+        //             break;
+        //           case "finalize":
+        //             let daySpan = (options.totalValue.maxDate - options.totalValue.minDate) / 3600000 / 24;
+        //             options.totalValue = `# Records: ${options.totalValue.records} | Total Hours: ${options.totalValue.hours} | ${daySpan} day range`;
+        //             // Assigning the final value to "totalValue" here
+        //             break;
+        //         }
+        //       }
+        //     }
+        //   }
+        // }
         >
           {this.props.children}
         </TimeSheetTable>

@@ -149,6 +149,11 @@ export default class DataLayer {
         { displayName: "Comment", fieldId: "Comment" },
     ];
 
+    private static PaypalEmailColumns: ISPListField[] = [
+        { displayName: "Paypal Email", fieldId: "Email" },
+        { displayName: "Email", fieldId: "Author/EMail" }
+    ];
+
     public web: Web;
 
     public constructor(public config: IDataLayerInput) {
@@ -250,6 +255,71 @@ export default class DataLayer {
             id,
             columns.map(v => v.fieldId)
         );
+    }
+
+    public DeletePaymentEntry(id: number) {
+        return this.GetTimesheetEntries(new SPFilter("Payment/Id", "eq", id.toString())).then((entries) => {
+            let items = this.web.lists.getByTitle(this.config.TimesheetListName).items;
+            let promises = [];
+            for (let i = 0; i < entries.length; i++) {
+                let entry = entries[i];
+                promises.push(items.getById(entry.Id).update({
+                    PaymentId: null
+                }));
+            }
+
+            return Promise.all(promises);
+        })
+        .then(() => {
+            return this.web.lists.getByTitle(this.config.PaymentsListName).items.getById(id).delete();
+        })
+    }
+
+    public DeleteInvoiceEntry(id: number) {
+        return this.GetTimesheetEntries(new SPFilter("Invoice/Id", "eq", id.toString())).then((entries) => {
+            let items = this.web.lists.getByTitle(this.config.TimesheetListName).items;
+            let promises = [];
+            for (let i = 0; i < entries.length; i++) {
+                let entry = entries[i];
+                promises.push(items.getById(entry.Id).update({
+                    InvoiceId: null
+                }));
+            }
+
+            return Promise.all(promises);
+        })
+        .then(() => {
+            return this.web.lists.getByTitle(this.config.InvoiceListName).items.getById(id).delete();
+        })
+    }
+
+    public DeleteTimesheetUpload(id: number) {
+        return this.GetTimesheetEntries(new SPFilter("Upload/Id", "eq", id.toString())).then((entries) => {
+            let items = this.web.lists.getByTitle(this.config.TimesheetListName).items;
+            let promises = [];
+            for (let i = 0; i < entries.length; i++) {
+                let entry = entries[i];
+                promises.push(items.getById(entry.Id).delete());
+            }
+
+            return Promise.all(promises);
+        })
+        .then(() => {
+            return this.web.lists.getByTitle(this.config.UploadsListName).items.getById(id).delete();
+        })
+    }
+
+    public GetPaypalEmails(emails: string[]) {
+        return this.GetListData("PaypalEmails", DataLayer.PaypalEmailColumns.map(v => v.fieldId))
+            .then((items) => {
+                let dict = {};
+                for (let i = 0; i < emails.length; i++) 
+                    dict[emails[i]] = emails[i];
+
+                for (let i = 0; i < items.length; i++) 
+                    dict[items[i].Author.EMail] = items[i].Email;
+                return dict;
+            });
     }
 
 }

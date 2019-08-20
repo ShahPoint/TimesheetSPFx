@@ -19,7 +19,8 @@ export default class InvoiceView extends React.Component<IInvoiceProps, any> {
     invoice: {},
     timesheetRows: [],
     errors: [],
-    Comment: ""
+    Comment: "",
+    isSavingNote: false
   };
 
   private Delete() {
@@ -92,9 +93,15 @@ export default class InvoiceView extends React.Component<IInvoiceProps, any> {
   }
 
   private SaveComment() {
+    if (this.state.isSavingNote)
+      return null;
+
+    this.setState({ isSavingNote: true });
     let promise = this.props.dataLayer.web.lists.getByTitle(this.props.dataLayer.config.PaymentsListName).items.getById(this.props.invoiceId)
       .update({
         Comment: this.state.Comment
+      }).then(() => {
+        this.setState({ isSavingNote: false });
       });
 
     return promise;
@@ -127,15 +134,15 @@ export default class InvoiceView extends React.Component<IInvoiceProps, any> {
         </div>
         <br />
         <div>
-          <label>Comment <button className="btn btn-sm" onClick={() => this.SaveComment()}>Save</button></label>
+          <label>Comment <button className="btn btn-sm btn-outline-secondary" onClick={() => this.SaveComment()}>Save <i className="fa fa-spinner fa-spin" hidden={!this.state.isSavingNote}></i></button></label>
           {this.state.invoice ? <textarea rows={2} className="form-control" value={this.state.Comment} onChange={(e) => this.setState({ Comment: e.currentTarget.value }) }></textarea> : null}
         </div>
         <br />
         <button className={`btn btn-primary`} onClick={() => this.props.ChangeViewState("invoices")}>Cancel</button>
         &emsp;
-        <button className={`btn btn-warning`} onClick={() => this.SetStatus("Unpaid")} disabled={this.state.invoice.Status === "Unpaid"}>Mark as Unpaid</button>
+        <button className={`btn btn-warning`} onClick={() => this.SetStatus("Unpaid")} disabled={this.state.invoice.Status === "Unpaid"}>{this.state.invoice.Status === "Unaid" ? "Unpaid" : "Mark as Unpaid"}</button>
         &emsp;
-        <button className={`btn btn-success`} onClick={() => this.SetStatus("Paid")} disabled={this.state.invoice.Status === "Paid"}>Mark as Paid</button>
+        <button className={`btn btn-success`} onClick={() => this.SetStatus("Paid")} disabled={this.state.invoice.Status === "Paid"}>{this.state.invoice.Status === "Paid" ? "Paid" : "Mark as Paid"}</button>
         {/* <button className={`btn btn-danger pull-right`} onClick={() => this.Delete()} disabled={this.state.invoice.Status === "Paid"}><i className="fa fa-trash-o"></i> Delete</button> */}
       </div>
     );

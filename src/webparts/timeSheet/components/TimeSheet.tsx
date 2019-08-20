@@ -22,6 +22,7 @@ import DataGrid, {
   OperationDescriptions
 } from 'devextreme-react/data-grid';
 import TimeSheetTable from './TimeSheetTable';
+import { getGUID } from '@pnp/common';
 
 export interface ITimeSheetProps {
   admin: boolean;
@@ -66,13 +67,14 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
   private static DataLayer: DataLayer = new DataLayer(TimeSheet.Config);
 
   public state: any = {
-    viewState: "default"
+    viewState: "default",
+    adminSub: "all"
   };
 
   public ChangeViewState(
     newState:
       "" | "default" | "import" | "display" | "adminQuickView" | "userDisplay" | "userQuickView" | "adminEntries" | "userEntries" |
-      "createInvoice" | "invoices" | "invoiceView" | "createPayment" | "payments" | "paymentView",
+      "createInvoice" | "invoices" | "invoiceView" | "createPayment" | "payments" | "paymentView" | "userPaymentsView",
     stateVars: any = {}
   ) {
     this.setState(Object["assign"]({}, { viewState: newState }, stateVars), () => { this.forceUpdate(); });
@@ -91,6 +93,9 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
       case "adminQuickView":
         view = this.renderAdminQuickView();
         break;
+      case "userPaymentsView":
+        view = this.renderUserPayments();
+        break;
       case "userQuickView":
         view = this.renderUserQuickView();
         break;
@@ -99,6 +104,9 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
         break;
       case "adminEntries":
         view = this.renderAdminEntryView();
+        break;
+      case "userEntries":
+        view = this.renderUserEntryView();
         break;
       case "createInvoice":
         view = this.renderCreateInvoice();
@@ -129,16 +137,44 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
   }
 
   private renderInvoices(): React.ReactElement<ITimeSheetProps> {
+
+    let DeleteInvoice = (id) => {
+      if (confirm("Are you sure you want to delete this item?")) {
+        TimeSheet.DataLayer.DeleteInvoiceEntry(id).then(() => {
+          this.setState({ viewState: "adminQuickView" }, () => { this.setState({ viewState: "invoices" }); });
+        });
+      }
+    }
+
     return (
       <div>
         <div>
           {this.renderAdminTabs()}
-          <TimeSheetTable items={TimeSheet.DataLayer.GetInvoiceEntries()}>
+          <TimeSheetTable items={TimeSheet.DataLayer.GetInvoiceEntries()}
+            summary={
+              {
+              totalItems: [
+                {
+                  column: "InvoiceAmount",
+                  summaryType: "sum",
+                  customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+              },
+              {
+                  column: "TotalHours",
+                  summaryType: "sum",
+                  customizeText: ({ value, valueText }) => value
+              }
+              ]
+            }}
+          >
             <Column
               caption="Actions"
-              cellTemplate={($container, { data }) => {
+              dataField="Id"
+              cellTemplate={($container, { data, value }) => {
                 ReactDom.render((<span>
-                  <button className="btn btn-sm btn-default" onClick={() => this.ChangeViewState("invoiceView", { invoiceId: data.Id })}>View</button>
+                  <button className="btn btn-sm btn-outline-secondary" onClick={() => this.ChangeViewState("invoiceView", { invoiceId: data.Id })}>View</button>
+                  <span hidden={data.Status === "Paid"}>&nbsp;</span>
+                  <button hidden={data.Status === "Paid"} className="btn btn-sm btn-outline-warning" onClick={() => DeleteInvoice(value)}>Delete</button>
                 </span>), $container);
               }}
             ></Column>
@@ -153,6 +189,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             <Column
               dataField="Created"
               dataType="datetime"
+              sortOrder="desc"
             ></Column>
             <Column
               dataField="InvoiceAmount"
@@ -174,17 +211,45 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
   }
 
   private renderPayments(): React.ReactElement<ITimeSheetProps> {
+
+    let DeletePayment = (id) => {
+      if (confirm("Are you sure you want to delete this item?")) {
+        TimeSheet.DataLayer.DeletePaymentEntry(id).then(() => {
+          this.setState({ viewState: "adminQuickView" }, () => { this.setState({ viewState: "payments" }); });
+        });
+      }
+    }
+
     return (
       <div>
         <div>
           <div>
           {this.renderAdminTabs()}
-          <TimeSheetTable items={TimeSheet.DataLayer.GetPaymentEntries()}>
+          <TimeSheetTable items={TimeSheet.DataLayer.GetPaymentEntries()}
+            summary={
+              {
+              totalItems: [
+                {
+                  column: "PaymentAmount",
+                  summaryType: "sum",
+                  customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+              },
+              {
+                  column: "TotalHours",
+                  summaryType: "sum",
+                  customizeText: ({ value, valueText }) => value
+              }
+              ]
+            }}
+          >
             <Column
               caption="Actions"
-              cellTemplate={($container, { data }) => {
+              dataField="Id"
+              cellTemplate={($container, { data, value }) => {
                 ReactDom.render((<span>
-                  <button className="btn btn-sm btn-default" onClick={() => this.ChangeViewState("paymentView", { invoiceId: data.Id })}>View</button>
+                  <button className="btn btn-sm btn-outline-secondary" onClick={() => this.ChangeViewState("paymentView", { invoiceId: data.Id })}>View</button>
+                  <span hidden={data.Status === "Paid"}>&nbsp;</span>
+                  <button hidden={data.Status === "Paid"} className="btn btn-sm btn-outline-warning" onClick={() => DeletePayment(value)}>Delete</button>
                 </span>), $container);
               }}
             ></Column>
@@ -194,11 +259,114 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             ></Column>
             <Column
               dataField="Contractor"
-              dataType="text"
+              dataType="string"
+              calculateCellValue={({ Author, Contractor }) => {
+                return Contractor || (Author.FirstName + " " + Author.LastName);
+              }}
+              calculateDisplayValue={function (data) {
+                this.calculateCellValue(data);
+              }}
+              calculateSortValue={function (data) {
+                this.calculateCellValue(data);
+              }}
+              filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
+              cellTemplate={($container, { data }) => {
+                ReactDom.render((<span>
+                  {data.Contractor || (data.Author.FirstName + " " + data.Author.LastName)}
+                </span>), $container);
+              }}
+              allowFiltering={true}
+              allowSearch={true}
             ></Column>
             <Column
               dataField="Created"
               dataType="datetime"
+              sortOrder="desc"
+            ></Column>
+            <Column
+              dataField="PaymentAmount"
+              dataType="number"
+              cellTemplate={($container, { value }) => {
+                ReactDom.render((<span>
+                  $ {value.toFixed(2)}
+                </span>), $container);
+              }}
+            ></Column>
+            <Column
+              dataField="TotalHours"
+              dataType="number"
+            ></Column>
+          </TimeSheetTable>
+        </div>
+        </div>
+      </div>
+    );
+  }
+
+  private renderUserPayments(): React.ReactElement<ITimeSheetProps> {
+
+    let payments = TimeSheet.DataLayer.GetCurrentUser().then((u) => TimeSheet.DataLayer.GetPaymentEntries(new SPFilter("Contractor", "eq", `'${u.Title}'`)));
+
+    return (
+      <div>
+        <div>
+          <div>
+          {this.renderUserTabs()}
+          <TimeSheetTable items={payments}
+            summary={
+              {
+              totalItems: [
+                {
+                  column: "PaymentAmount",
+                  summaryType: "sum",
+                  customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+              },
+              {
+                  column: "TotalHours",
+                  summaryType: "sum",
+                  customizeText: ({ value, valueText }) => value
+              }
+              ]
+            }}
+          >
+            {/* <Column
+              caption="Actions"
+              dataField="Id"
+              cellTemplate={($container, { data, value }) => {
+                ReactDom.render((<span>
+                  <button className="btn btn-sm btn-outline-secondary" onClick={()F => this.ChangeViewState("paymentView", { invoiceId: data.Id })}>View</button>
+                </span>), $container);
+              }}
+            ></Column> */}
+            <Column
+              dataField="Status"
+              dataType="text"
+            ></Column>
+            {/* <Column
+              dataField="Contractor"
+              dataType="string"
+              calculateCellValue={({ Author, Contractor }) => {
+                return Contractor || (Author.FirstName + " " + Author.LastName);
+              }}
+              calculateDisplayValue={function (data) {
+                this.calculateCellValue(data);
+              }}
+              calculateSortValue={function (data) {
+                this.calculateCellValue(data);
+              }}
+              filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
+              cellTemplate={($container, { data }) => {
+                ReactDom.render((<span>
+                  {data.Contractor || (data.Author.FirstName + " " + data.Author.LastName)}
+                </span>), $container);
+              }}
+              allowFiltering={true}
+              allowSearch={true}
+            ></Column> */}
+            <Column
+              dataField="Created"
+              dataType="datetime"
+              sortOrder="desc"
             ></Column>
             <Column
               dataField="PaymentAmount"
@@ -221,15 +389,43 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
   }
 
   private renderDisplay(): React.ReactElement<ITimeSheetProps> {
+
+    let DeleteEntry = (id) => {
+      if (confirm("Are you sure you want to delete this item?")) {
+        TimeSheet.DataLayer.DeleteTimesheetUpload(id).then(() => {
+          this.setState({ viewState: "adminQuickView" }, () => { this.setState({ viewState: "display" }); });
+        });
+      }
+    }
+
     return (
       <div>
         {this.renderAdminTabs()}
-        <TimeSheetTable items={TimeSheet.DataLayer.GetUploadEntries()}>
+        <TimeSheetTable items={TimeSheet.DataLayer.GetUploadEntries()}
+          summary={
+            {
+            totalItems: [
+            //   {
+            //     column: "Contractor Pay",
+            //     summaryType: "sum",
+            //     customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+            // },
+            {
+                column: "TotalHours",
+                summaryType: "sum",
+                customizeText: ({ value, valueText }) => value
+            }
+            ]
+          }}
+        >
           <Column
             caption="Actions"
-            cellTemplate={($container, { data }) => {
+            dataField="Id"
+            cellTemplate={($container, { data, value }) => {
               ReactDom.render((<span>
-                <button className="btn btn-sm btn-default" onClick={() => this.ChangeViewState("adminQuickView", { uploadId: data.Id })}>View</button>
+                <button className="btn btn-sm btn-outline-secondary" onClick={() => this.ChangeViewState("adminQuickView", { uploadId: data.Id })}>View</button>
+                <span hidden={data.Status === "Approved"}>&nbsp;</span>
+                  <button hidden={data.Status === "Approved"} className="btn btn-sm btn-outline-warning" onClick={() => DeleteEntry(value)}>Delete</button>
               </span>), $container);
             }}
           ></Column>
@@ -239,12 +435,24 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
           ></Column>
           <Column
             caption="Contractor"
-            dataType="text"
+            dataType="string"
+            calculateCellValue={({ Author, Contractor }) => {
+              return Contractor || (Author.FirstName + " " + Author.LastName);
+            }}
+            calculateDisplayValue={function (data) {
+              this.calculateCellValue(data);
+            }}
+            calculateSortValue={function (data) {
+              this.calculateCellValue(data);
+            }}
+            filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
             cellTemplate={($container, { data }) => {
               ReactDom.render((<span>
                 {data.Contractor || (data.Author.FirstName + " " + data.Author.LastName)}
               </span>), $container);
             }}
+            allowFiltering={true}
+            allowSearch={true}
           ></Column>
           <Column
             caption="Uploaded By"
@@ -260,6 +468,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             caption="Uploaded"
             dataField="Created"
             dataType="datetime"
+            sortOrder="desc"
           ></Column>
           <Column
             dataField="TotalHours"
@@ -284,36 +493,67 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
   private renderUserDisplay(): React.ReactElement<ITimeSheetProps> {
     return (
       <div>
-        <button className={`btn btn-primary`} onClick={() => this.ChangeViewState("import")}>New</button>
-        &emsp;
         {this.renderUserTabs()}
-        <TimeSheetTable items={TimeSheet.DataLayer.GetCurrentUser().then((u) => TimeSheet.DataLayer.GetUploadEntries(new SPFilter("Author/EMail", "eq", `'${u.Email}'`)))}>
-          <Column
+        <hr />
+        <button className={`btn btn-sm btn-secondary`} onClick={() => this.ChangeViewState("import")}><i className="fa fa-fw fa-plus"></i> New</button>
+        <br />
+        <br />
+        <TimeSheetTable items={TimeSheet.DataLayer.GetCurrentUser().then((u) => TimeSheet.DataLayer.GetUploadEntries(new SPFilter("Author/EMail", "eq", `'${u.Email}'`)))}
+          summary={
+            {
+            totalItems: [
+            //   {
+            //     column: "Contractor Pay",
+            //     summaryType: "sum",
+            //     customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+            // },
+            {
+                column: "TotalHours",
+                summaryType: "sum",
+                customizeText: ({ value, valueText }) => value
+            }
+            ]
+          }}
+        >
+          {/* <Column
             caption="Actions"
             cellTemplate={($container, { data }) => {
               ReactDom.render((<span>
                 <button className="btn btn-sm btn-default" onClick={() => this.ChangeViewState("userQuickView", { uploadId: data.Id })}>View</button>
               </span>), $container);
             }}
-          ></Column>
+          ></Column> */}
           <Column
             dataField="Status"
             dataType="text"
           ></Column>
-          <Column
+          {/* <Column
             caption="Contractor"
             dataType="text"
+            calculateCellValue={({ Author, Contractor }) => {
+              return Contractor || (Author.FirstName + " " + Author.LastName);
+            }}
+            calculateDisplayValue={function (data) {
+              this.calculateCellValue(data);
+            }}
+            calculateSortValue={function (data) {
+              this.calculateCellValue(data);
+            }}
+            filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
             cellTemplate={($container, { data }) => {
               ReactDom.render((<span>
-                {data.Author.FirstName} {data.Author.LastName}
+                {data.Contractor || (data.Author.FirstName + " " + data.Author.LastName)}
               </span>), $container);
             }}
+            allowFiltering={true}
+            allowSearch={true}
             visible={false}
-          ></Column>
+          ></Column> */}
           <Column
             caption="Uploaded"
             dataField="Created"
             dataType="datetime"
+            sortOrder="desc"
           ></Column>
           <Column
             dataField="TotalHours"
@@ -344,7 +584,35 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
     return (
       <div>
         {this.renderAdminTabs()}
+        <hr />
+        <span className={`btn-group`}>
+          <button className={"btn btn-sm btn-secondary " + (this.state.adminSub === "all" ? "active" : "")} onClick={() => { this.setState({ adminSub: "all" }) }}>All Entries</button>
+          <button className={"btn btn-sm btn-secondary " + (this.state.adminSub === "payouts" ? "active" : "")} onClick={() => { this.setState({ adminSub: "payouts" }) }}>Ready for Payout</button>
+          <button className={"btn btn-sm btn-secondary " + (this.state.adminSub === "invoices" ? "active" : "")} onClick={() => { this.setState({ adminSub: "invoices" }) }}>Ready for Invoice</button>
+        </span>
+        <br />
+        <br />
         <TimeSheetData
+          summary={
+            {
+            totalItems: [
+              {
+                column: "Contractor Pay",
+                summaryType: "sum",
+                customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+            },
+            {
+              column: "Client Invoice Amt.",
+              summaryType: "sum",
+              customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+          },
+            {
+                column: "Hours",
+                summaryType: "sum",
+                customizeText: ({ value, valueText }) => value
+            }
+            ]
+          }}
           items={TimeSheet.DataLayer.GetTimesheetEntries(new SPFilter("Approved", "eq", "1"))}
           customButtons={[
             {
@@ -367,6 +635,407 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             }
           ]}
         >
+          <Column
+            dataField="Date"
+            dataType="date"
+            sortOrder="desc"
+          ></Column>
+          <Column
+            dataField="StartTime"
+            dataType="datetime"
+            format="hh:mm aa"
+            visible={false}
+          ></Column>
+          <Column
+            dataField="EndTime"
+            dataType="datetime"
+            format="hh:mm aa"
+            visible={false}
+            ></Column>
+          <Column
+            caption="Project Code"
+            dataField="ProjectCode.ProjectCode"
+            dataType="string"
+            visible={false}
+          ></Column>
+          <Column
+            caption="Client"
+            dataField="ProjectCode.Client"
+            groupIndex={0}
+            dataType="string"
+          ></Column>
+          <Column
+            caption="Project"
+            dataField="ProjectCode.Project"
+            groupIndex={1}
+            dataType="string"
+          ></Column>
+          <Column
+            dataField="Details"
+            dataType="text"
+          ></Column>
+          <Column
+            dataField="InternalNotes"
+            dataType="string"
+          ></Column>
+          <Column
+            dataField="Created"
+            dataType="date"
+            visible={false}
+            ></Column>
+          <Column
+            dataField="Author.EMail"
+            caption="Email"
+            dataType="string"
+            visible={false}
+            ></Column>
+          <Column
+            caption="Contractor"
+            dataType="string"
+            calculateCellValue={({ Author, Contractor }) => {
+              return Contractor || (Author.FirstName + " " + Author.LastName);
+            }}
+            calculateDisplayValue={function (data) {
+              this.calculateCellValue(data);
+            }}
+            calculateSortValue={function (data) {
+              this.calculateCellValue(data);
+            }}
+            filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
+            cellTemplate={($container, { data }) => {
+              ReactDom.render((<span>
+                {data.Contractor || (data.Author.FirstName + " " + data.Author.LastName)}
+              </span>), $container);
+            }}
+            allowFiltering={true}
+            allowSearch={true}
+          ></Column>
+          <Column
+            dataField="Hours"
+            dataType="number"
+          ></Column>
+          <Column
+            caption="Contractor Rate"
+            dataType="number"
+            dataField="ProjectCode.ContractorRate"
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                $ {value.toFixed(2)}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            caption="Contractor Pay"
+            dataType="number"
+            calculateCellValue={rowData => {
+              return rowData.Hours * rowData.ProjectCode.ContractorRate;
+            }}
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                $ {value.toFixed(2)}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            caption="Billable Rate"
+            dataType="number"
+            dataField="ProjectCode.BillableRate"
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                $ {value.toFixed(2)}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            caption="Client Invoice Amt."
+            dataType="number"
+            calculateCellValue={rowData => {
+              return rowData.Hours * rowData.ProjectCode.BillableRate;
+            }}
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                $ {value.toFixed(2)}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            visible={false}
+            dataField="Approved"
+            dataType="boolean"
+            cellTemplate={($container, { data }) => {
+              ReactDom.render((<span>
+                {data.Approved ? "Yes" : "No"}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            caption="Invoiced"
+            dataField="Invoice"
+            dataType="boolean"
+            filterValue={this.state.adminSub == "invoices" ? false : undefined}
+            calculateCellValue={({ Invoice }) => {
+              return Invoice != null;
+            }}
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                {value ? "Yes" : "No"}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            visible={false}
+            caption={"Invoice Paid"}
+            dataField="Invoiced"
+            dataType="boolean"
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                {value ? "Yes" : "No"}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            caption="Contractor Payment Status"
+            dataField="Payment.Status"
+            dataType="string"
+            calculateCellValue={({ Payment }) => {
+              if (Payment !== undefined && Payment.Status !== undefined)
+                return Payment.Status;
+              return "Pending";
+            }}
+            selectedFilterOperation={"contains"}
+            filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
+            filterValue={this.state.adminSub == "payouts" ? "Pending" : ""}
+            lookup={{
+              dataSource: [{ val: "Pending" }, { val: "Unpaid" }, { val: "Paid" }],
+              displayExpr: "val",
+              valueExpr: "val"
+            }}
+          ></Column>
+        </TimeSheetData>
+      </div>
+    );
+  }
+
+  private renderUserEntryView(): React.ReactElement<ITimeSheetProps> {
+    let items = TimeSheet.DataLayer.GetCurrentUser().then((u) => TimeSheet.DataLayer.GetTimesheetEntries(new SPFilter("Author/EMail", "eq", `'${u.Email}'`)));
+    return (
+      <div>
+        {this.renderUserTabs()}
+        <br />
+        <TimeSheetData
+          summary={
+            {
+            totalItems: [
+              {
+                column: "Contractor Pay",
+                summaryType: "sum",
+                customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+            },
+            {
+                column: "Hours",
+                summaryType: "sum",
+                customizeText: ({ value, valueText }) => value
+            }
+            ]
+          }}
+          items={items}
+          customButtons={[
+            {
+              options: {
+                icon: "fa fa-file-text-o",
+                hint: "Compile Invoice"
+              },
+              onClick: (data: any[]) => {
+                this.ChangeViewState("createInvoice", { invoiceItems: new Promise<any[]>((resolve, reject) => resolve(data)) });
+              }
+            },
+            {
+              options: {
+                icon: "fa fa-usd",
+                hint: "Contractor Payout"
+              },
+              onClick: (data: any[]) => {
+                this.ChangeViewState("createPayment", { paymentItems: new Promise<any[]>((resolve, reject) => resolve(data)) });
+              }
+            }
+          ]}
+        >
+          <Column
+            dataField="Date"
+            dataType="date"
+            sortOrder="desc"
+          ></Column>
+          <Column
+            dataField="StartTime"
+            dataType="datetime"
+            format="hh:mm aa"
+            visible={false}
+          ></Column>
+          <Column
+            dataField="EndTime"
+            dataType="datetime"
+            format="hh:mm aa"
+            visible={false}
+            ></Column>
+          <Column
+            caption="Project Code"
+            dataField="ProjectCode.ProjectCode"
+            dataType="string"
+            visible={false}
+          ></Column>
+          <Column
+            caption="Client"
+            dataField="ProjectCode.Client"
+            groupIndex={0}
+            dataType="string"
+          ></Column>
+          <Column
+            caption="Project"
+            dataField="ProjectCode.Project"
+            groupIndex={1}
+            dataType="string"
+          ></Column>
+          <Column
+            dataField="Details"
+            dataType="text"
+          ></Column>
+          <Column
+            dataField="InternalNotes"
+            dataType="string"
+          ></Column>
+          <Column
+            dataField="Created"
+            dataType="date"
+            visible={false}
+            ></Column>
+          <Column
+            dataField="Author.EMail"
+            caption="Email"
+            dataType="string"
+            visible={false}
+            ></Column>
+          {/* <Column
+            caption="Contractor"
+            dataType="string"
+            calculateCellValue={({ Author, Contractor }) => {
+              return Contractor || (Author.FirstName + " " + Author.LastName);
+            }}
+            calculateDisplayValue={function (data) {
+              this.calculateCellValue(data);
+            }}
+            calculateSortValue={function (data) {
+              this.calculateCellValue(data);
+            }}
+            filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
+            cellTemplate={($container, { data }) => {
+              ReactDom.render((<span>
+                {data.Contractor || (data.Author.FirstName + " " + data.Author.LastName)}
+              </span>), $container);
+            }}
+            allowFiltering={true}
+            allowSearch={true}
+          ></Column> */}
+          <Column
+            dataField="Hours"
+            dataType="number"
+          ></Column>
+          <Column
+            caption="Contractor Rate"
+            dataType="number"
+            dataField="ProjectCode.ContractorRate"
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                $ {value.toFixed(2)}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            caption="Contractor Pay"
+            dataType="number"
+            calculateCellValue={rowData => {
+              return rowData.Hours * rowData.ProjectCode.ContractorRate;
+            }}
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                $ {value.toFixed(2)}
+              </span>), $container);
+            }}
+          ></Column>
+          {/* <Column
+            caption="Billable Rate"
+            dataType="number"
+            dataField="ProjectCode.BillableRate"
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                $ {value.toFixed(2)}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            caption="Client Invoice Amt."
+            dataType="number"
+            calculateCellValue={rowData => {
+              return rowData.Hours * rowData.ProjectCode.BillableRate;
+            }}
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                $ {value.toFixed(2)}
+              </span>), $container);
+            }}
+          ></Column> */}
+          <Column
+            visible={false}
+            dataField="Approved"
+            dataType="boolean"
+            cellTemplate={($container, { data }) => {
+              ReactDom.render((<span>
+                {data.Approved ? "Yes" : "No"}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            caption="Invoiced"
+            dataField="Invoice"
+            dataType="boolean"
+            filterValue={undefined}
+            calculateCellValue={({ Invoice }) => {
+              return Invoice != null;
+            }}
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                {value ? "Yes" : "No"}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            visible={false}
+            caption={"Invoice Paid"}
+            dataField="Invoiced"
+            dataType="boolean"
+            cellTemplate={($container, { value }) => {
+              ReactDom.render((<span>
+                {value ? "Yes" : "No"}
+              </span>), $container);
+            }}
+          ></Column>
+          <Column
+            caption="Contractor Payment Status"
+            dataField="Payment.Status"
+            dataType="string"
+            calculateCellValue={({ Payment }) => {
+              if (Payment !== undefined && Payment.Status !== undefined)
+                return Payment.Status;
+              return "Pending";
+            }}
+            selectedFilterOperation={"contains"}
+            filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
+            filterValue={""}
+            lookup={{
+              dataSource: [{ val: "Pending" }, { val: "Unpaid" }, { val: "Paid" }],
+              displayExpr: "val",
+              valueExpr: "val"
+            }}
+          ></Column>
         </TimeSheetData>
       </div>
     );
@@ -443,7 +1112,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
         <button className={`btn btn-primary ${this.state.viewState === "display" ? "active" : ""}`} onClick={() => this.ChangeViewState("display")}>Uploads</button>
         <button className={`btn btn-primary ${this.state.viewState === "adminEntries" ? "active" : ""}`} onClick={() => this.ChangeViewState("adminEntries")}>Approved Entries</button>
         <button className={`btn btn-primary ${this.state.viewState === "invoices" ? "active" : ""}`} onClick={() => this.ChangeViewState("invoices")}>Invoices</button>
-        <button className={`btn btn-primary ${this.state.viewState === "payments" ? "active" : ""}`} onClick={() => this.ChangeViewState("payments")}>Payments</button>
+        <button className={`btn btn-primary ${this.state.viewState === "payments" ? "active" : ""}`} onClick={() => this.ChangeViewState("payments")}>Payouts</button>
       </span>
       <span hidden={!this.props.devMode}>
         &emsp;
@@ -454,11 +1123,13 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
 
   private renderUserTabs(): React.ReactElement<ITimeSheetProps> {
     return (<div>
-      {/* <span className={`btn-group`}>
-        <button className={`btn btn-primary ${this.state.viewState === "userDisplay" ? "active" : ""}`} onClick={() => this.ChangeViewState("userDisplay")}>View Uploads</button>
-        <button className={`btn btn-primary ${this.state.viewState === "import" ? "active" : ""}`} onClick={() => this.ChangeViewState("import")}>Upload Hours</button>
-      </span> */}
+      <span className={`btn-group`}>
+        <button className={`btn btn-primary ${this.state.viewState === "userDisplay" ? "active" : ""}`} onClick={() => this.ChangeViewState("userDisplay")}>Uploads</button>
+        <button className={`btn btn-primary ${this.state.viewState === "userEntries" ? "active" : ""}`} onClick={() => this.ChangeViewState("userEntries")}>Entries</button>
+        <button className={`btn btn-primary ${this.state.viewState === "userPaymentsView" ? "active" : ""}`} onClick={() => this.ChangeViewState("userPaymentsView")}>Payouts</button>
+      </span>
       <span hidden={!this.props.devMode || !this.props.admin}>
+        &emsp;
         <button className={`btn btn-primary`} onClick={() => this.ChangeViewState("display")}>Admin View <small>(Testing)</small></button>
       </span>
     </div>);

@@ -52,7 +52,6 @@ export default class Payment extends React.Component<IPaymentProps, any> {
   private GetData() {
     return this.props.items.then((d) => {
       let errors = [];
-      console.log(d);
       let numClients = d.map(v => v.Author.FirstName + " " + v.Author.LastName).reduce((arr: string[], v: string) => {
         if (arr.indexOf(v) === -1)
           arr.push(v);
@@ -99,7 +98,7 @@ export default class Payment extends React.Component<IPaymentProps, any> {
         </div>
         <button className={`btn btn-primary`} onClick={() => this.props.ChangeViewState("adminEntries")}>Cancel</button>
         &emsp;
-        <button className={`btn btn-primary`} onClick={() => this.SubmitPayment()} disabled={this.state.errors.length > 0}>Submit Payment</button>
+        <button className={`btn btn-primary`} onClick={() => this.SubmitPayment()} disabled={this.state.errors.length > 0}>Submit Payout</button>
       </div>
     );
   }

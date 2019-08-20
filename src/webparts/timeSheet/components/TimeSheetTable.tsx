@@ -28,6 +28,7 @@ export interface ITimeSheetTableProps {
   customButtons?: ITableButton[];
   OnGetRows?: (rows: any[]) => void;
   OnCustomExport?: (selectedData: any[]) => void;
+  OnInitialized?: (gridInstance: dxDatagGrid) => void
 }
 
 export default class TimeSheetTable extends React.Component<ITimeSheetTableProps & any, any> {
@@ -39,7 +40,9 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
   };
 
   private GetData() {
+    this.instance.beginCustomLoading("Retrieving Data...");
     return this.props.items.then((data) => {
+      this.instance.endCustomLoading();
       this.setState({ data: data }, () => this.forceUpdate());
       return data;
     });
@@ -117,7 +120,11 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
       <DataGrid
         id={`datagrid-${Math.round(Math.random() * 1000)}`}
         {...Object["assign"]({}, props, this.props)}
-        onInitialized={(dx) => this.instance = dx.component}
+        onInitialized={(dx) => {
+          this.instance = dx.component;
+          if (typeof this.props.OnInitialized === "function")
+            this.props.OnInitialized(dx.component);
+        }}
       >
         {this.renderColumns()}
       </DataGrid>
@@ -133,6 +140,7 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
       <Column
         dataField="Date"
         dataType="date"
+        sortOrder="desc"
       ></Column>
       <Column
         dataField="StartTime"
@@ -166,7 +174,7 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
       ></Column>
       <Column
         dataField="Details"
-        dataType="string"
+        dataType="text"
       ></Column>
       <Column
         dataField="InternalNotes"
@@ -186,11 +194,23 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
       <Column
         caption="Contractor"
         dataType="string"
+        calculateCellValue={({ Author, Contractor }) => {
+          return Contractor || (Author.FirstName + " " + Author.LastName);
+        }}
+        calculateDisplayValue={function (data) {
+          this.calculateCellValue(data);
+        }}
+        calculateSortValue={function (data) {
+          this.calculateCellValue(data);
+        }}
+        filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
         cellTemplate={($container, { data }) => {
           ReactDom.render((<span>
             {data.Contractor || (data.Author.FirstName + " " + data.Author.LastName)}
           </span>), $container);
         }}
+        allowFiltering={true}
+        allowSearch={true}
       ></Column>
       <Column
         dataField="Hours"

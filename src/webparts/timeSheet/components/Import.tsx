@@ -21,7 +21,8 @@ export default class Import extends React.Component<IImportProps, any> {
   public state: any = {
     json: null,
     upload: null,
-    additionalValidations: []
+    additionalValidations: [],
+    isSaving: false
   };
 
   private ProcessUpload(files: FileList) {
@@ -113,6 +114,11 @@ export default class Import extends React.Component<IImportProps, any> {
   }
 
   private SubmitData(list: TimesheetRow[], upload: TimesheetUpload) {
+
+    if (this.state.isSaving)
+      return null;
+    this.setState({ isSavingNote: true });
+
     let web = new Web(this.props.siteUrl);
     // let batch = web.createBatch();
     let contractor = list[0].Project.Contractor.FirstName + " " + list[0].Project.Contractor.LastName;
@@ -132,6 +138,7 @@ export default class Import extends React.Component<IImportProps, any> {
       .then((uploadId) => {
 
         let batch = web.createBatch();
+
 
 
         list.forEach((item) => {
@@ -156,7 +163,11 @@ export default class Import extends React.Component<IImportProps, any> {
       if (this.props.OnSubmit)
         this.props.OnSubmit();
 
+      this.setState({ isSavingNote: false });
+
       return v;
+    }, (e) => {
+      this.setState({ isSavingNote: false });
     });
 
     return promise;
@@ -236,9 +247,9 @@ export default class Import extends React.Component<IImportProps, any> {
         <ul hidden={this.state.additionalValidations.length == 0} style={{ color: "red" }}>
           {this.state.additionalValidations.map(v => (<li>{v}</li>))}
         </ul>
-        <button className={`btn btn-primary`} onClick={() => this.props.ChangeViewState("userDisplay")}>Cancel</button>
+        <button className={`btn btn-primary`} disabled={this.state.isSaving} onClick={() => this.props.ChangeViewState("userDisplay")}>Cancel</button>
         &emsp;
-          <button className={`btn btn-primary`} disabled={!isValid} onClick={() => this.SubmitData(this.state.json, this.state.upload)}>Submit Hours</button>
+          <button className={`btn btn-primary`} disabled={!isValid || this.state.isSaving} onClick={() => this.SubmitData(this.state.json, this.state.upload)}>Submit Hours <i className="fa fa-spinner fa-spin" hidden={!this.state.isSaving}></i></button>
       </div>
     );
   }

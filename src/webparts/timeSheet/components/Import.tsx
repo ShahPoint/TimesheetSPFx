@@ -117,7 +117,7 @@ export default class Import extends React.Component<IImportProps, any> {
 
     if (this.state.isSaving)
       return null;
-    this.setState({ isSavingNote: true });
+    this.setState({ isSaving: true });
 
     let web = new Web(this.props.siteUrl);
     // let batch = web.createBatch();
@@ -137,13 +137,11 @@ export default class Import extends React.Component<IImportProps, any> {
       })
       .then((uploadId) => {
 
-        let batch = web.createBatch();
-
-
+        let promises = [];
 
         list.forEach((item) => {
-          web.lists.getByTitle(this.props.timesheetListName)
-            .items.inBatch(batch)
+          promises.push(web.lists.getByTitle(this.props.timesheetListName)
+            .items
             .add({
               StartTime: item.StartTime.toLocaleString(),
               EndTime: item.EndTime.toLocaleString(),
@@ -153,21 +151,21 @@ export default class Import extends React.Component<IImportProps, any> {
               InternalNotes: item.InternalNotes,
               UploadId: uploadId,
               Contractor: item.Project.Contractor.FirstName + " " + item.Project.Contractor.LastName
-            });
+            }));
         });
 
-        return batch.execute();
+        return Promise.all(promises);
       });
 
     promise.then((v) => {
       if (this.props.OnSubmit)
         this.props.OnSubmit();
 
-      this.setState({ isSavingNote: false });
+      this.setState({ isSaving: false });
 
       return v;
     }, (e) => {
-      this.setState({ isSavingNote: false });
+      this.setState({ isSaving: false });
     });
 
     return promise;

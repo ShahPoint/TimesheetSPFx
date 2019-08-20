@@ -28,7 +28,7 @@ export interface ITimeSheetTableProps {
   customButtons?: ITableButton[];
   OnGetRows?: (rows: any[]) => void;
   OnCustomExport?: (selectedData: any[]) => void;
-  OnInitialized?: (gridInstance: dxDatagGrid) => void
+  OnInitialized?: (gridInstance: dxDatagGrid) => void;
 }
 
 export default class TimeSheetTable extends React.Component<ITimeSheetTableProps & any, any> {

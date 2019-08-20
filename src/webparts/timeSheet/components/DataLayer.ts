@@ -26,7 +26,7 @@ export interface ISPFilter {
 }
 
 type TreeOperator = "and" | "or";
-type FilterOperator = "eq";
+type FilterOperator = "eq" | "ne" | "gt" | "le";
 
 export class SPFlatFilter implements ISPFilter {
     public constructor (private elements: ISPFilter[], private operator: TreeOperator) { }
@@ -272,7 +272,7 @@ export default class DataLayer {
         })
         .then(() => {
             return this.web.lists.getByTitle(this.config.PaymentsListName).items.getById(id).delete();
-        })
+        });
     }
 
     public DeleteInvoiceEntry(id: number) {
@@ -290,7 +290,7 @@ export default class DataLayer {
         })
         .then(() => {
             return this.web.lists.getByTitle(this.config.InvoiceListName).items.getById(id).delete();
-        })
+        });
     }
 
     public DeleteTimesheetUpload(id: number) {
@@ -306,7 +306,7 @@ export default class DataLayer {
         })
         .then(() => {
             return this.web.lists.getByTitle(this.config.UploadsListName).items.getById(id).delete();
-        })
+        });
     }
 
     public GetPaypalEmails(emails: string[]) {

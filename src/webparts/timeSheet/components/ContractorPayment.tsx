@@ -52,7 +52,7 @@ export default class Payment extends React.Component<IPaymentProps, any> {
   private GetData() {
     return this.props.items.then((d) => {
       let errors = [];
-      let numClients = d.map(v => v.Author.FirstName + " " + v.Author.LastName).reduce((arr: string[], v: string) => {
+      let numClients = d.map(v => v.Contractor).reduce((arr: string[], v: string) => {
         if (arr.indexOf(v) === -1)
           arr.push(v);
         return arr;

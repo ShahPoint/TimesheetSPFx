@@ -94,7 +94,7 @@ export default class PaymentView extends React.Component<IPaymentProps, any> {
       }
 
       this.setState({ paypalBatchData: paypalBatch.join("\r\n") });
-    })
+    });
   }
 
   public render(): React.ReactElement<IPaymentProps> {

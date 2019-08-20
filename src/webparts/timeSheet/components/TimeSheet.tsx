@@ -6,7 +6,7 @@ import TimeSheetData from './TimeSheetData';
 import Import from './Import';
 import InvoiceView from './InvoiceView';
 import Invoice from './Invoice';
-import DataLayer, { SPFilter, IDataLayerInput } from './DataLayer';
+import DataLayer, { SPFilter, IDataLayerInput, SPFilterTree } from './DataLayer';
 import QuickView from './TimesheetQuickView';
 import Payment from './ContractorPayment';
 import PaymentView from './PaymentView';
@@ -68,7 +68,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
 
   public state: any = {
     viewState: "default",
-    adminSub: "all"
+    adminSub: "payouts"
   };
 
   public ChangeViewState(
@@ -144,7 +144,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
           this.setState({ viewState: "adminQuickView" }, () => { this.setState({ viewState: "invoices" }); });
         });
       }
-    }
+    };
 
     return (
       <div>
@@ -218,7 +218,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
           this.setState({ viewState: "adminQuickView" }, () => { this.setState({ viewState: "payments" }); });
         });
       }
-    }
+    };
 
     return (
       <div>
@@ -396,7 +396,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
           this.setState({ viewState: "adminQuickView" }, () => { this.setState({ viewState: "display" }); });
         });
       }
-    }
+    };
 
     return (
       <div>
@@ -581,14 +581,19 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
   }
 
   private renderAdminEntryView(): React.ReactElement<ITimeSheetProps> {
+    let baseFilter = new SPFilter("Approved", "eq", "1");
+    // let additionalFilter = this.state.adminSub != "all" ? (this.state.adminSub == "payouts" ? new SPFilter("Payment/Id", "le", "0") : new SPFilter("Invoice/Id", "le", "0")) : null;
+    // let finalFilter = additionalFilter != null ? new SPFilterTree(baseFilter, "and", additionalFilter) : baseFilter;
+    let items = TimeSheet.DataLayer.GetTimesheetEntries(baseFilter);
+
     return (
       <div>
         {this.renderAdminTabs()}
         <hr />
         <span className={`btn-group`}>
-          <button className={"btn btn-sm btn-secondary " + (this.state.adminSub === "all" ? "active" : "")} onClick={() => { this.setState({ adminSub: "all" }) }}>All Entries</button>
-          <button className={"btn btn-sm btn-secondary " + (this.state.adminSub === "payouts" ? "active" : "")} onClick={() => { this.setState({ adminSub: "payouts" }) }}>Ready for Payout</button>
-          <button className={"btn btn-sm btn-secondary " + (this.state.adminSub === "invoices" ? "active" : "")} onClick={() => { this.setState({ adminSub: "invoices" }) }}>Ready for Invoice</button>
+          <button className={"btn btn-sm btn-secondary " + (this.state.adminSub === "all" ? "active" : "")} onClick={() => { this.setState({ adminSub: "all" }, () => this.forceUpdate()); }}>All Entries</button>
+          <button className={"btn btn-sm btn-secondary " + (this.state.adminSub === "payouts" ? "active" : "")} onClick={() => { this.setState({ adminSub: "payouts" }, () => this.forceUpdate()); }}>Ready for Payout</button>
+          <button className={"btn btn-sm btn-secondary " + (this.state.adminSub === "invoices" ? "active" : "")} onClick={() => { this.setState({ adminSub: "invoices" }, () => this.forceUpdate()); }}>Ready for Invoice</button>
         </span>
         <br />
         <br />
@@ -613,7 +618,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             }
             ]
           }}
-          items={TimeSheet.DataLayer.GetTimesheetEntries(new SPFilter("Approved", "eq", "1"))}
+          items={items}
           customButtons={[
             {
               options: {
@@ -773,8 +778,8 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             dataField="Invoice"
             dataType="boolean"
             filterValue={this.state.adminSub == "invoices" ? false : undefined}
-            calculateCellValue={({ Invoice }) => {
-              return Invoice != null;
+            calculateCellValue={({ invoice }) => {
+              return invoice != null;
             }}
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
@@ -797,9 +802,9 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             caption="Contractor Payment Status"
             dataField="Payment.Status"
             dataType="string"
-            calculateCellValue={({ Payment }) => {
-              if (Payment !== undefined && Payment.Status !== undefined)
-                return Payment.Status;
+            calculateCellValue={({ payment }) => {
+              if (payment !== undefined && payment.Status !== undefined)
+                return payment.Status;
               return "Pending";
             }}
             selectedFilterOperation={"contains"}
@@ -998,8 +1003,8 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             dataField="Invoice"
             dataType="boolean"
             filterValue={undefined}
-            calculateCellValue={({ Invoice }) => {
-              return Invoice != null;
+            calculateCellValue={({ invoice }) => {
+              return invoice != null;
             }}
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
@@ -1022,9 +1027,9 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             caption="Contractor Payment Status"
             dataField="Payment.Status"
             dataType="string"
-            calculateCellValue={({ Payment }) => {
-              if (Payment !== undefined && Payment.Status !== undefined)
-                return Payment.Status;
+            calculateCellValue={({ payment }) => {
+              if (payment !== undefined && payment.Status !== undefined)
+                return payment.Status;
               return "Pending";
             }}
             selectedFilterOperation={"contains"}

@@ -261,7 +261,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
               dataField="Contractor"
               dataType="string"
               calculateCellValue={({ Author, Contractor }) => {
-                return Contractor || (Author.FirstName + " " + Author.LastName);
+                return Contractor;
               }}
               calculateDisplayValue={function (data) {
                 this.calculateCellValue(data);
@@ -272,7 +272,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
               filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
               cellTemplate={($container, { data }) => {
                 ReactDom.render((<span>
-                  {data.Contractor || (data.Author.FirstName + " " + data.Author.LastName)}
+                  {data.Contractor}
                 </span>), $container);
               }}
               allowFiltering={true}
@@ -778,8 +778,8 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             dataField="Invoice"
             dataType="boolean"
             filterValue={this.state.adminSub == "invoices" ? false : undefined}
-            calculateCellValue={({ invoice }) => {
-              return invoice != null;
+            calculateCellValue={({ Invoice }) => {
+              return Invoice != null;
             }}
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
@@ -802,16 +802,16 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             caption="Contractor Payment Status"
             dataField="Payment.Status"
             dataType="string"
-            calculateCellValue={({ payment }) => {
-              if (payment !== undefined && payment.Status !== undefined)
-                return payment.Status;
-              return "Pending";
+            calculateCellValue={({ Payment }) => {
+              if (Payment && Payment.Status)
+                return Payment.Status;
+              return "N/A";
             }}
             selectedFilterOperation={"contains"}
             filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
-            filterValue={this.state.adminSub == "payouts" ? "Pending" : ""}
+            filterValue={this.state.adminSub == "payouts" ? "N/A" : ""}
             lookup={{
-              dataSource: [{ val: "Pending" }, { val: "Unpaid" }, { val: "Paid" }],
+              dataSource: [{ val: "Pending" }, { val: "Unpaid" }, { val: "Paid" }, { val: "N/A" }],
               displayExpr: "val",
               valueExpr: "val"
             }}
@@ -844,26 +844,6 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             ]
           }}
           items={items}
-          customButtons={[
-            {
-              options: {
-                icon: "fa fa-file-text-o",
-                hint: "Compile Invoice"
-              },
-              onClick: (data: any[]) => {
-                this.ChangeViewState("createInvoice", { invoiceItems: new Promise<any[]>((resolve, reject) => resolve(data)) });
-              }
-            },
-            {
-              options: {
-                icon: "fa fa-usd",
-                hint: "Contractor Payout"
-              },
-              onClick: (data: any[]) => {
-                this.ChangeViewState("createPayment", { paymentItems: new Promise<any[]>((resolve, reject) => resolve(data)) });
-              }
-            }
-          ]}
         >
           <Column
             dataField="Date"
@@ -1003,8 +983,8 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             dataField="Invoice"
             dataType="boolean"
             filterValue={undefined}
-            calculateCellValue={({ invoice }) => {
-              return invoice != null;
+            calculateCellValue={({ Invoice }) => {
+              return Invoice != null;
             }}
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
@@ -1027,16 +1007,16 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             caption="Contractor Payment Status"
             dataField="Payment.Status"
             dataType="string"
-            calculateCellValue={({ payment }) => {
-              if (payment !== undefined && payment.Status !== undefined)
-                return payment.Status;
-              return "Pending";
+            calculateCellValue={({ Payment }) => {
+              if (Payment && Payment.Status)
+                return Payment.Status;
+              return "N/A";
             }}
             selectedFilterOperation={"contains"}
             filterOperations={[ "contains", "notcontains", "startswith", "endswith", "=", "<>" ]}
             filterValue={""}
             lookup={{
-              dataSource: [{ val: "Pending" }, { val: "Unpaid" }, { val: "Paid" }],
+              dataSource: [{ val: "Pending" }, { val: "Unpaid" }, { val: "Paid" }, { val: "N/A" }],
               displayExpr: "val",
               valueExpr: "val"
             }}

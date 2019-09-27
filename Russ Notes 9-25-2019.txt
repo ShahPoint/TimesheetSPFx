@@ -1,0 +1,11 @@
+[done] Instead of times, use hours spent
+//[For russ] Project code + details dropdown for excel template
+[done] change customer + project to project + task
+[done - removed from template] [indifferent] remove internal notes
+[done] associate trip to person who uploaded the trip..
+	Two people should be able to use the same task code
+[done] remove user based validations, time based validations
+[done] deprecate invoicing and payouts
+	Select a view similar to contractor payouts with checkboxes to see burndown
+	add in grouping totals?
+[done] Deprecate payouts on user side

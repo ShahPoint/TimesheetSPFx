@@ -74,7 +74,7 @@ export default class TimeSheet extends React.Component<ITimeSheetDataProps, any>
   }
 
   private CustomExport(rows: any[]) {
-    const lineFormat: string = `{new Date(source.Date).toLocaleDateString()} {source.ProjectCode.Client}: {new Date(source.StartTime).toLocaleTimeString()}-{new Date(source.EndTime).toLocaleTimeString()} - {source.Details} | {source.ProjectCode.Project}: {(Math.round(source.Hours * 100) / 100)}`;
+    const lineFormat: string = `{new Date(source.Date).toLocaleDateString()} {source.ProjectCode.Client}: {source.Details} | {source.ProjectCode.Project}: {(Math.round(source.Hours * 100) / 100)}`;
     const joinPhrase: string = `\r\n`;
 
     let result = rows.map((source) => Format(lineFormat, source)).join(joinPhrase);

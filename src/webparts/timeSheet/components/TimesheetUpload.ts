@@ -12,8 +12,6 @@ export interface IUploadProps {
 
 export class TimesheetRow {
     public Date: Date;
-    public StartTime: Date;
-    public EndTime: Date;
     public ProjectCode: string;
     public Details: string;
     public InternalNotes: string;
@@ -27,14 +25,11 @@ export class TimesheetRow {
 
     public constructor(data: any) {
         this.Date = new Date(data.Date);
-        this.StartTime = new Date(`${data.Date} ${data["Start Time"]}`);
-        this.EndTime = new Date(`${data.Date} ${data["End Time"]}`);
         this.ProjectCode = data["Project Code"];
         this.Details = data.Details;
         this.InternalNotes = data["Internal Notes"];
         this.CsvRow = data.CsvRow;
-
-        this.Hours = (this.EndTime.getTime() - this.StartTime.getTime()) / 3600000;
+        this.Hours = parseFloat(data.Hours);
     }
 }
 

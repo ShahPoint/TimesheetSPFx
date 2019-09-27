@@ -70,8 +70,6 @@ export default class DataLayer {
 
     private static TimesheetColumns: ISPListField[] = [
         { displayName: "Date", fieldId: "Date" },
-        { displayName: "StartTime", fieldId: "StartTime" },
-        { displayName: "EndTime", fieldId: "EndTime" },
         { displayName: "Hours", fieldId: "Hours" },
         { displayName: "Upload", fieldId: "Upload" },
         { displayName: "Upload Id", fieldId: "Upload/Id" },

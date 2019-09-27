@@ -35,7 +35,7 @@ export default class RowSummary extends React.Component<IRowSummaryProps, any> {
 
           dateControls = dateEntries.map(v => (
             <li style={{ cursor: "pointer" }}>
-              <span>{parseFloat(v.Hours)} hrs - ({new Date(v.StartTime).toLocaleTimeString()} - {new Date(v.EndTime).toLocaleTimeString()}) - {v.Details}</span>
+              <span>{parseFloat(v.Hours)} hrs - {v.Details}</span>
             </li>
           ));
 

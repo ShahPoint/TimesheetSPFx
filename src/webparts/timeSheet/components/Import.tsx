@@ -74,15 +74,11 @@ export default class Import extends React.Component<IImportProps, any> {
             csvRow: csvRow
           };
 
-          if (isNaN(item.Date.getTime()) || isNaN(item.StartTime.getTime()) || isNaN(item.EndTime.getTime())) {
+          if (isNaN(item.Date.getTime())) {
             if (isNaN(item.Date.getTime()))
               itemValidation.errors.push({ message: "Date is required", level: 0 });
-            if (isNaN(item.StartTime.getTime()))
-              itemValidation.errors.push({ message: "Start Time is required", level: 0 });
-            if (isNaN(item.EndTime.getTime()))
-              itemValidation.errors.push({ message: "End Time is required", level: 0 });
-          } else if (item.EndTime < item.StartTime)
-            itemValidation.errors.push({ message: "End Time cannot be before Start Time. If this was an overnight log, create a new entry for the overflow into the next day", level: 0 });
+          } else if (!item.Hours)
+            itemValidation.errors.push({ message: "Hours are required", level: 0 });
           if (!item.ProjectCode)
             itemValidation.errors.push({ message: "Project Code is required", level: 0 });
           else {
@@ -91,13 +87,11 @@ export default class Import extends React.Component<IImportProps, any> {
 
             if (!project)
               itemValidation.errors.push({ message: `Invalid project code '${item.ProjectCode}'`, level: 0 });
-            else if (project.Contractor.EMail != user.Email)
-              itemValidation.errors.push({ message: "You are not the assigned contractor for this project", level: 10 });
+            // else if (project.Contractor.EMail != user.Email)
+            //   itemValidation.errors.push({ message: "You are not the assigned contractor for this project", level: 10 });
           }
           if (!item.Details)
             itemValidation.errors.push({ message: "Details are required", level: 0 });
-          if (item.Hours > 12)
-            itemValidation.errors.push({ message: "Cannot log more than 12 hours in a single record - split this line into two entries", level: 0 });
 
           valid = itemValidation.errors.length == 0;
           item.Validation = itemValidation;
@@ -121,41 +115,42 @@ export default class Import extends React.Component<IImportProps, any> {
 
     let web = new Web(this.props.siteUrl);
     // let batch = web.createBatch();
-    let contractor = list[0].Project.Contractor.FirstName + " " + list[0].Project.Contractor.LastName;
 
-    let promise = web.lists.getByTitle(this.props.dataLayer.config.UploadsListName)
-      .items.add({
-        FileName: upload.FileName,
-        EntryRangeStart: list.sort((a, b) => a.Date < b.Date ? -1 : 1)[0].Date,
-        EntryRangeEnd: list.sort((a, b) => a.Date > b.Date ? -1 : 1)[0].Date,
-        TotalHours: list.map(v => v.Hours).reduce((pv, cv) => pv + cv),
-        ContractorPay: list.reduce((pv, v) => pv + parseFloat(v.Project.ContractorRate) * v.Hours, 0),
-        Contractor: contractor
-      })
-      .then(({ data, item }) => {
-        return item.attachmentFiles.add(upload.FileName, upload.FileData).then(() => data.Id);
-      })
-      .then((uploadId) => {
+    let promise = this.props.dataLayer.GetCurrentUser().then((user) => {
+      let contractor = user.Title;
+      web.lists.getByTitle(this.props.dataLayer.config.UploadsListName)
+        .items.add({
+          FileName: upload.FileName,
+          EntryRangeStart: list.sort((a, b) => a.Date < b.Date ? -1 : 1)[0].Date,
+          EntryRangeEnd: list.sort((a, b) => a.Date > b.Date ? -1 : 1)[0].Date,
+          TotalHours: list.map(v => v.Hours).reduce((pv, cv) => pv + cv),
+          ContractorPay: list.reduce((pv, v) => pv + parseFloat(v.Project.ContractorRate) * v.Hours, 0),
+          Contractor: contractor
+        })
+        .then(({ data, item }) => {
+          return item.attachmentFiles.add(upload.FileName, upload.FileData).then(() => data.Id);
+        })
+        .then((uploadId) => {
 
-        let promises = [];
+          let promises = [];
 
-        list.forEach((item) => {
-          promises.push(web.lists.getByTitle(this.props.timesheetListName)
-            .items
-            .add({
-              StartTime: item.StartTime.toLocaleString(),
-              EndTime: item.EndTime.toLocaleString(),
-              Date: item.Date.toLocaleString(),
-              ProjectCodeId: item.Project.Id,
-              Details: item.Details,
-              InternalNotes: item.InternalNotes,
-              UploadId: uploadId,
-              Contractor: item.Project.Contractor.FirstName + " " + item.Project.Contractor.LastName
-            }));
-        });
+          list.forEach((item) => {
+            promises.push(web.lists.getByTitle(this.props.timesheetListName)
+              .items
+              .add({
+                Hours: item.Hours,
+                Date: item.Date.toLocaleString(),
+                ProjectCodeId: item.Project.Id,
+                Details: item.Details,
+                InternalNotes: item.InternalNotes,
+                UploadId: uploadId,
+                Contractor: contractor
+              }));
+          });
 
-        return Promise.all(promises);
-      });
+          return Promise.all(promises);
+        })
+    });
 
     promise.then((v) => {
       if (this.props.OnSubmit)
@@ -191,7 +186,7 @@ export default class Import extends React.Component<IImportProps, any> {
     }
 
     for (let key in data) {
-      data[key] = data[key].sort((a, b) => a.StartTime < b.StartTime ? -1 : 1);
+      data[key] = data[key];
       let entries = {};
       data[key].forEach((v) => {
         let k = v.Date ? v.Date.toLocaleDateString() : "";
@@ -212,7 +207,7 @@ export default class Import extends React.Component<IImportProps, any> {
           <ul>
             {entries[k].map(v => (
               <li style={{ color: v.Valid === false ? "inherit" : "inherit", cursor: "pointer" }}>
-                {isNaN(v.Hours) ? "---" : v.Hours} hrs - ({v.StartTime ? v.StartTime.toLocaleTimeString() : "Invalid Time"} - {v.EndTime ? v.EndTime.toLocaleTimeString() : "Invalid Time"}) - {v.Details}
+                {isNaN(v.Hours) ? "---" : v.Hours} hrs - {v.Details}
                 <span style={{ display: "block" }} hidden={v.Valid}>
                   {`Row ${v.Validation.csvRow}`}
                   <ul className="fa-ul">

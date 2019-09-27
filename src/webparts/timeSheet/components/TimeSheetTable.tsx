@@ -143,18 +143,6 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
         sortOrder="desc"
       ></Column>
       <Column
-        dataField="StartTime"
-        dataType="datetime"
-        format="hh:mm aa"
-        visible={false}
-      ></Column>
-      <Column
-        dataField="EndTime"
-        dataType="datetime"
-        format="hh:mm aa"
-        visible={false}
-        ></Column>
-      <Column
         caption="Project Code"
         dataField="ProjectCode.ProjectCode"
         dataType="string"

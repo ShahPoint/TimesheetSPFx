@@ -57,7 +57,8 @@ REFERENCES
 export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
 
   private static Config: IDataLayerInput = {
-    SiteUrl: "https://byrdttoli.sharepoint.com/sites/Sandbox1",
+    // SiteUrl: "https://byrdttoli.sharepoint.com/sites/Sandbox1",
+    SiteUrl: "https://tegam952.sharepoint.com/sites/Timesheets",
     TimesheetListName: "Timesheet",
     ProjectInfoListName: "ProjectInformation",
     UploadsListName: "TimesheetUploads",

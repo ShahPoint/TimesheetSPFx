@@ -27,7 +27,7 @@ export default class Payment extends React.Component<IPaymentProps, any> {
         TimesheetEntryIds: { results: this.state.timesheetRows.map(v => v.Id.toString()) },
         PaymentAmount: this.state.timesheetRows.reduce((prev, item) => parseFloat(item.ProjectCode.ContractorRate) * parseFloat(item.Hours) + prev, 0),
         TotalHours: this.state.timesheetRows.reduce((prev, item) => parseFloat(item.Hours) + prev, 0),
-        Contractor: this.state.timesheetRows[0].Author.FirstName + " " + this.state.timesheetRows[0].Author.LastName
+        Contractor: this.state.timesheetRows[0].Contractor
       })
       .then(({ data, item }) => {
         let paymentId = data.Id;

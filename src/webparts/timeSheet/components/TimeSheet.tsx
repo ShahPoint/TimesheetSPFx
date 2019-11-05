@@ -157,7 +157,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
                 {
                   column: "InvoiceAmount",
                   summaryType: "sum",
-                  customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+                  customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
               },
               {
                   column: "TotalHours",
@@ -196,7 +196,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
               dataType="number"
               cellTemplate={($container, { value }) => {
                 ReactDom.render((<span>
-                  $ {value.toFixed(2)}
+                  $ {value ? value.toFixed(2) : "0.00"}
                 </span>), $container);
               }}
             ></Column>
@@ -232,7 +232,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
                 {
                   column: "PaymentAmount",
                   summaryType: "sum",
-                  customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+                  customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
               },
               {
                   column: "TotalHours",
@@ -288,7 +288,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
               dataType="number"
               cellTemplate={($container, { value }) => {
                 ReactDom.render((<span>
-                  $ {value.toFixed(2)}
+                  $ {value ? value.toFixed(2) : "0.00"}
                 </span>), $container);
               }}
             ></Column>
@@ -319,7 +319,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
                 {
                   column: "PaymentAmount",
                   summaryType: "sum",
-                  customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+                  customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
               },
               {
                   column: "TotalHours",
@@ -373,7 +373,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
               dataType="number"
               cellTemplate={($container, { value }) => {
                 ReactDom.render((<span>
-                  $ {value.toFixed(2)}
+                  $ {value ? value.toFixed(2) : "0.00"}
                 </span>), $container);
               }}
             ></Column>
@@ -408,7 +408,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             //   {
             //     column: "Contractor Pay",
             //     summaryType: "sum",
-            //     customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+            //     customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
             // },
             {
                 column: "TotalHours",
@@ -505,7 +505,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             //   {
             //     column: "Contractor Pay",
             //     summaryType: "sum",
-            //     customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+            //     customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
             // },
             {
                 column: "TotalHours",
@@ -604,12 +604,12 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
               {
                 column: "Contractor Pay",
                 summaryType: "sum",
-                customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+                customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
             },
             {
               column: "Client Invoice Amt.",
               summaryType: "sum",
-              customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+              customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
           },
             {
                 column: "Hours",
@@ -725,7 +725,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             dataField="ProjectCode.ContractorRate"
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
-                $ {value.toFixed(2)}
+                $ {value ? value.toFixed(2) : "0.00"}
               </span>), $container);
             }}
           ></Column>
@@ -737,7 +737,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             }}
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
-                $ {value.toFixed(2)}
+                $ {value ? value.toFixed(2) : "0.00"}
               </span>), $container);
             }}
           ></Column>
@@ -747,7 +747,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             dataField="ProjectCode.BillableRate"
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
-                $ {value.toFixed(2)}
+                $ {value ? value.toFixed(2) : "0.00"}
               </span>), $container);
             }}
           ></Column>
@@ -759,7 +759,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             }}
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
-                $ {value.toFixed(2)}
+                $ {value ? value.toFixed(2) : "0.00"}
               </span>), $container);
             }}
           ></Column>
@@ -834,7 +834,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
               {
                 column: "Contractor Pay",
                 summaryType: "sum",
-                customizeText: ({ value, valueText }) => `$ ${value.toFixed(2)}`
+                customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
             },
             {
                 column: "Hours",
@@ -930,7 +930,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             dataField="ProjectCode.ContractorRate"
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
-                $ {value.toFixed(2)}
+                $ {value ? value.toFixed(2) : "0.00"}
               </span>), $container);
             }}
           ></Column>
@@ -942,7 +942,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             }}
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
-                $ {value.toFixed(2)}
+                $ {value ? value.toFixed(2) : "0.00"}
               </span>), $container);
             }}
           ></Column>
@@ -952,7 +952,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             dataField="ProjectCode.BillableRate"
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
-                $ {value.toFixed(2)}
+                $ {value ? value.toFixed(2) : "0.00"}
               </span>), $container);
             }}
           ></Column>
@@ -964,7 +964,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             }}
             cellTemplate={($container, { value }) => {
               ReactDom.render((<span>
-                $ {value.toFixed(2)}
+                $ {value ? value.toFixed(2) : "0.00"}
               </span>), $container);
             }}
           ></Column> */}

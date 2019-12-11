@@ -10,8 +10,8 @@ import InvoiceModal from './InvoiceModal';
 import DataLayer, { SPFilter, IDataLayerInput, SPFilterTree } from './DataLayer';
 import QuickView from './TimesheetQuickView';
 import Payment from './ContractorPayment';
+import PaymentModal from './PaymentModal';
 import PaymentView from './PaymentView';
-import Modal from './modal';
 
 import DataGrid, {
   Column,
@@ -112,18 +112,18 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
       case "userEntries":
         view = this.renderUserEntryView();
         break;
-      case "createInvoice":
-        view = this.renderCreateInvoice();
-        break;
+      // case "createInvoice":
+      //   view = this.renderCreateInvoice();
+      //   break;
       case "invoices":
         view = this.renderInvoices();
         break;
       case "invoiceView":
         view = this.renderViewInvoice();
         break;
-      case "createPayment":
-        view = this.renderCreatePayment();
-        break;
+      // case "createPayment":
+      //   view = this.renderCreatePayment();
+      //   break;
       case "payments":
         view = this.renderPayments();
         break;
@@ -587,6 +587,8 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
 
   private showInvoiceModal = null;
   private hideInvoiceModal = null;
+  private showPaymentModal = null;
+  private hidePaymentModal = null;
 
   private renderAdminEntryView(): React.ReactElement<ITimeSheetProps> {
     let baseFilter = new SPFilter("Approved", "eq", "1");
@@ -611,6 +613,13 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
           OnMount={(show, hide) => {
             this.showInvoiceModal = show;
             this.hideInvoiceModal = hide;
+          }} />
+        <PaymentModal
+          dataLayer={TimeSheet.DataLayer}
+          OnSubmit={() => this.hidePaymentModal()}
+          OnMount={(show, hide) => {
+            this.showPaymentModal = show;
+            this.hidePaymentModal = hide;
           }} />
         <TimeSheetData
           summary={
@@ -641,7 +650,6 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
                 hint: "Compile Invoice"
               },
               onClick: (data: any[]) => {
-                // this.ChangeViewState("createInvoice", { invoiceItems: new Promise<any[]>((resolve, reject) => resolve(data)) });
                 this.showInvoiceModal(new Promise<any[]>((resolve, reject) => resolve(data)));
               }
             },
@@ -651,7 +659,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
                 hint: "Contractor Payout"
               },
               onClick: (data: any[]) => {
-                // this.ChangeViewState("createPayment", { paymentItems: new Promise<any[]>((resolve, reject) => resolve(data)) });
+                this.showPaymentModal(new Promise<any[]>((resolve, reject) => resolve(data)));
               }
             }
           ]}
@@ -1053,14 +1061,14 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
     );
   }
 
-  private renderCreateInvoice(): React.ReactElement<ITimeSheetProps> {
-    return (
-      <div>
-        <button className={`btn btn-primary`} onClick={() => this.ChangeViewState("invoices")}>Cancel</button>
-        <Invoice items={this.state.invoiceItems} dataLayer={TimeSheet.DataLayer} ChangeViewState={(s: any) => this.ChangeViewState(s)} OnSubmit={() => this.ChangeViewState("adminEntries")}></Invoice>
-      </div>
-    );
-  }
+  // private renderCreateInvoice(): React.ReactElement<ITimeSheetProps> {
+  //   return (
+  //     <div>
+  //       <button className={`btn btn-primary`} onClick={() => this.ChangeViewState("invoices")}>Cancel</button>
+  //       <Invoice items={this.state.invoiceItems} dataLayer={TimeSheet.DataLayer} ChangeViewState={(s: any) => this.ChangeViewState(s)} OnSubmit={() => this.ChangeViewState("adminEntries")}></Invoice>
+  //     </div>
+  //   );
+  // }
 
   private renderViewInvoice(): React.ReactElement<ITimeSheetProps> {
     return (
@@ -1071,14 +1079,14 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
     );
   }
 
-  private renderCreatePayment(): React.ReactElement<ITimeSheetProps> {
-    return (
-      <div>
-        <button className={`btn btn-primary`} onClick={() => this.ChangeViewState("payments")}>Cancel</button>
-        <Payment items={this.state.paymentItems} dataLayer={TimeSheet.DataLayer} ChangeViewState={(s: any) => this.ChangeViewState(s)} OnSubmit={() => this.ChangeViewState("adminEntries")}></Payment>
-      </div>
-    );
-  }
+  // private renderCreatePayment(): React.ReactElement<ITimeSheetProps> {
+  //   return (
+  //     <div>
+  //       <button className={`btn btn-primary`} onClick={() => this.ChangeViewState("payments")}>Cancel</button>
+  //       <Payment items={this.state.paymentItems} dataLayer={TimeSheet.DataLayer} ChangeViewState={(s: any) => this.ChangeViewState(s)} OnSubmit={() => this.ChangeViewState("adminEntries")}></Payment>
+  //     </div>
+  //   );
+  // }
 
   private renderViewPayment(): React.ReactElement<ITimeSheetProps> {
     return (

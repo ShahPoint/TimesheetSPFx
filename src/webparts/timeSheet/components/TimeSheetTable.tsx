@@ -57,7 +57,7 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
       dataSource: this.state.data,
       allowColumnReordering: true,
       allowColumnResizing: true,
-      paging: { enabled: false, pageSize: 10 },
+      paging: { enabled: true, pageSize: 100 },
       filterRow: { 
         visible: true,
         showOperationChooser: true

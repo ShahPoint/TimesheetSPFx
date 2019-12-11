@@ -6,6 +6,7 @@ import { CurrentUser } from '@pnp/sp/src/siteusers';
 import DataLayer, { SPFilter, SPFilterTree, SPFlatFilter } from './DataLayer';
 import TimesheetUpload, { TimesheetRow } from './TimesheetUpload';
 import RowSummary from './RowSummary';
+import * as moment from 'moment';
 import Modal from './modal';
 import * as $ from 'jquery';
 
@@ -27,12 +28,22 @@ export default class InvoiceModal extends React.Component<IInvoiceModalProps, an
   };
 
   private SubmitInvoice() {
+    let dates = this.state.timesheetRows.map(v => v.Date).sort((v1, v2) => moment(v1).diff(v2));
+    let maxDate = dates[dates.length - 1];
+    let minDate = dates[0];
+    let clients = this.state.timesheetRows.map(v => v.ProjectCode ? v.ProjectCode.Client : "")
+      .filter(v => v !== "")
+      .reduce((unique, item) => unique.includes(item) ? unique : [...unique, item], [])
+      .join(", ");
+
     return this.props.dataLayer.web.lists.getByTitle(this.props.dataLayer.config.InvoiceListName)
       .items.add({
         TimesheetEntryIds: { results: this.state.timesheetRows.map(v => v.Id.toString()) },
         InvoiceAmount: this.state.timesheetRows.reduce((prev, item) => parseFloat(item.ProjectCode.BillableRate) * parseFloat(item.Hours) + prev, 0),
         TotalHours: this.state.timesheetRows.reduce((prev, item) => parseFloat(item.Hours) + prev, 0),
-        Customer: this.state.timesheetRows[0].ProjectCode.Client
+        Customer: clients,
+        EntryRangeStart: minDate,
+        EntryRangeEnd: maxDate
       })
       .then(({ data, item }) => {
         let invoiceId = data.Id;
@@ -107,6 +118,11 @@ export default class InvoiceModal extends React.Component<IInvoiceModalProps, an
             text: "Submit Invoice",
             type: "primary",
             onClick: () => {
+              if ((this.state.errors || []).length > 0) {
+                $(toastr.warning("Cannot submit with errors")).css("background-color", "darkorange");
+                return;
+              }
+              
               $(toastr.info("Submitting... Please wait")).css("background-color", "dodgerblue");
               this.SubmitInvoice().then(() => {
                 $(toastr.success("Invoice Submitted")).css("background-color", "green");

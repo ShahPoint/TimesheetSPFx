@@ -196,6 +196,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
               dataField="Created"
               dataType="datetime"
               sortOrder="desc"
+              visible={false}
             ></Column>
             <Column
               dataField="InvoiceAmount"
@@ -209,6 +210,16 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             <Column
               dataField="TotalHours"
               dataType="number"
+            ></Column>
+            <Column
+              dataField="EntryRangeStart"
+              caption="Entry Range Start"
+              dataType="date"
+            ></Column>
+            <Column
+              dataField="EntryRangeEnd"
+              caption="Entry Range End"
+              dataType="date"
             ></Column>
           </TimeSheetTable>
         </div>

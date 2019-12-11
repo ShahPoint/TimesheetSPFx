@@ -120,6 +120,11 @@ export default class PaymentModal extends React.Component<IPaymentModalProps, an
             text: "Submit Payment",
             type: "primary",
             onClick: () => {
+              if ((this.state.errors || []).length > 0) {
+                $(toastr.warning("Cannot submit with errors")).css("background-color", "darkorange");
+                return;
+              }
+              
               $(toastr.info("Submitting... Please wait")).css("background-color", "dodgerblue");
               this.SubmitPayment().then(() => {
                 $(toastr.success("Payment Submitted")).css("background-color", "green");

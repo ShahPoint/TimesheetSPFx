@@ -136,6 +136,8 @@ export default class DataLayer {
         { displayName: "Total Hours", fieldId: "TotalHours" },
         { displayName: "Customer", fieldId: "Customer" },
         { displayName: "Comment", fieldId: "Comment" },
+        { displayName: "Entry Range Start", fieldId: "EntryRangeStart" },
+        { displayName: "Entry Range End", fieldId: "EntryRangeEnd" },
     ];
 
     private static PaymentColumns: ISPListField[] = [

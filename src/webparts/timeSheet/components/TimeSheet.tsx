@@ -262,7 +262,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
               caption="Actions"
               dataField="Id"
               cellTemplate={($container, { data, value }) => {
-                ReactDom.render((<span>
+                ReactDom.render((<span style={{"textAlign": "left", "width": "100%"}}>
                   {/* <button className="btn btn-sm btn-outline-secondary" onClick={() => this.ChangeViewState("paymentView", { invoiceId: data.Id })}>View</button> */}
                   <button className="btn btn-sm btn-outline-secondary" onClick={() => this.showPaymentViewModal(data.Id)}>View</button>
                   <span hidden={data.Status === "Paid"}>&nbsp;</span>
@@ -299,6 +299,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
               dataField="Created"
               dataType="datetime"
               sortOrder="desc"
+              visible={false}
             ></Column>
             <Column
               dataField="PaymentAmount"
@@ -312,6 +313,19 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             <Column
               dataField="TotalHours"
               dataType="number"
+            ></Column>
+            <Column
+              dataField="Clients"
+            ></Column>
+            <Column
+              dataField="EntryRangeStart"
+              caption="Entry Range Start"
+              dataType="date"
+            ></Column>
+            <Column
+              dataField="EntryRangeEnd"
+              caption="Entry Range End"
+              dataType="date"
             ></Column>
           </TimeSheetTable>
         </div>

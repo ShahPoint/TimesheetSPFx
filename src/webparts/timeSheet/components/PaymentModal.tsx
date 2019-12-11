@@ -8,6 +8,7 @@ import TimesheetUpload, { TimesheetRow } from './TimesheetUpload';
 import RowSummary from './RowSummary';
 import Modal from './modal';
 import * as $ from 'jquery';
+import * as moment from 'moment';
 import 'toastr/build/toastr.css';
 
 import * as toastr from 'toastr';
@@ -28,12 +29,23 @@ export default class PaymentModal extends React.Component<IPaymentModalProps, an
   };
 
   private SubmitPayment() {
+    let dates = this.state.timesheetRows.map(v => v.Date).sort((v1, v2) => moment(v1).diff(v2));
+    let maxDate = dates[dates.length - 1];
+    let minDate = dates[0];
+    let clients = this.state.timesheetRows.map(v => v.ProjectCode ? v.ProjectCode.Client : "")
+      .filter(v => v !== "")
+      .reduce((unique, item) => unique.includes(item) ? unique : [...unique, item], [])
+      .join(", ");
+
     return this.props.dataLayer.web.lists.getByTitle(this.props.dataLayer.config.PaymentsListName)
       .items.add({
         TimesheetEntryIds: { results: this.state.timesheetRows.map(v => v.Id.toString()) },
         PaymentAmount: this.state.timesheetRows.reduce((prev, item) => parseFloat(item.ProjectCode.ContractorRate) * parseFloat(item.Hours) + prev, 0),
         TotalHours: this.state.timesheetRows.reduce((prev, item) => parseFloat(item.Hours) + prev, 0),
-        Contractor: this.state.timesheetRows[0].Contractor
+        Contractor: this.state.timesheetRows[0].Contractor,
+        EntryRangeStart: minDate,
+        EntryRangeEnd: maxDate,
+        Clients: clients
       })
       .then(({ data, item }) => {
         let paymentId = data.Id;

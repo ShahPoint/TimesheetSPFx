@@ -147,6 +147,9 @@ export default class DataLayer {
         { displayName: "Total Hours", fieldId: "TotalHours" },
         { displayName: "Contractor", fieldId: "Contractor" },
         { displayName: "Comment", fieldId: "Comment" },
+        { displayName: "Entry Range Start", fieldId: "EntryRangeStart" },
+        { displayName: "Entry Range End", fieldId: "EntryRangeEnd" },
+        { displayName: "Clients", fieldId: "Clients" },
     ];
 
     private static PaypalEmailColumns: ISPListField[] = [

@@ -6,10 +6,12 @@ import TimeSheetData from './TimeSheetData';
 import Import from './Import';
 import InvoiceView from './InvoiceView';
 import Invoice from './Invoice';
+import InvoiceModal from './InvoiceModal';
 import DataLayer, { SPFilter, IDataLayerInput, SPFilterTree } from './DataLayer';
 import QuickView from './TimesheetQuickView';
 import Payment from './ContractorPayment';
 import PaymentView from './PaymentView';
+import Modal from './modal';
 
 import DataGrid, {
   Column,
@@ -23,6 +25,8 @@ import DataGrid, {
 } from 'devextreme-react/data-grid';
 import TimeSheetTable from './TimeSheetTable';
 import { getGUID } from '@pnp/common';
+
+import * as $ from 'jquery';
 
 export interface ITimeSheetProps {
   admin: boolean;
@@ -132,7 +136,8 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
         break;
     }
 
-
+    let $modal = null;
+    
     return <div>{view}</div>;
   }
 
@@ -580,6 +585,9 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
     );
   }
 
+  private showInvoiceModal = null;
+  private hideInvoiceModal = null;
+
   private renderAdminEntryView(): React.ReactElement<ITimeSheetProps> {
     let baseFilter = new SPFilter("Approved", "eq", "1");
     // let additionalFilter = this.state.adminSub != "all" ? (this.state.adminSub == "payouts" ? new SPFilter("Payment/Id", "le", "0") : new SPFilter("Invoice/Id", "le", "0")) : null;
@@ -597,6 +605,13 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
         </span>
         <br />
         <br />
+        <InvoiceModal
+          dataLayer={TimeSheet.DataLayer}
+          OnSubmit={() => this.hideInvoiceModal()}
+          OnMount={(show, hide) => {
+            this.showInvoiceModal = show;
+            this.hideInvoiceModal = hide;
+          }} />
         <TimeSheetData
           summary={
             {
@@ -626,7 +641,8 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
                 hint: "Compile Invoice"
               },
               onClick: (data: any[]) => {
-                this.ChangeViewState("createInvoice", { invoiceItems: new Promise<any[]>((resolve, reject) => resolve(data)) });
+                // this.ChangeViewState("createInvoice", { invoiceItems: new Promise<any[]>((resolve, reject) => resolve(data)) });
+                this.showInvoiceModal(new Promise<any[]>((resolve, reject) => resolve(data)));
               }
             },
             {
@@ -635,7 +651,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
                 hint: "Contractor Payout"
               },
               onClick: (data: any[]) => {
-                this.ChangeViewState("createPayment", { paymentItems: new Promise<any[]>((resolve, reject) => resolve(data)) });
+                // this.ChangeViewState("createPayment", { paymentItems: new Promise<any[]>((resolve, reject) => resolve(data)) });
               }
             }
           ]}

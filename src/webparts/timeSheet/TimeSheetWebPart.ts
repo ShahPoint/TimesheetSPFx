@@ -12,14 +12,15 @@ import TimeSheet from './components/TimeSheet';
 import { ITimeSheetProps } from './components/TimeSheet';
 
 /*
-NOTE: Hacky fix, but in order for the dx themes to work, all @font-face blocks need to have the woff2 reference rmeoved
+NOTE: Hacky fix, but in order for the dx themes to work, all @font-face blocks need to have the woff2 reference removed
 */
 // import 'jquery/dist/jquery.min.js';
 import 'devextreme/dist/css/dx.common.css';
 import 'devextreme/dist/css/dx.light.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 // import 'devextreme/dist/js/dx.all.js';
-// import 'bootstrap/dist/js/bootstrap.min.js';
+import 'bootstrap/dist/js/bootstrap.min.js';
+
 /*
   Have to remove woff2 references from fontawesome too
 */

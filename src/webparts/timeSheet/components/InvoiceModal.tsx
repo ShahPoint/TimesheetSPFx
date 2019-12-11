@@ -10,10 +10,8 @@ import Modal from './modal';
 import * as $ from 'jquery';
 
 export interface IInvoiceModalProps {
-  // items: Promise<any[]>;
   dataLayer: DataLayer;
   OnSubmit?: () => void;
-  // ChangeViewState: (view: string) => void;
   OnMount: (Show: (data: Promise<any[]>) => void, Hide: () => void) => void;
 }
 

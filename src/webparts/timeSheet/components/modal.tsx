@@ -31,12 +31,16 @@ export interface IModalProps {
 export default class Modal extends React.Component<IModalProps, any> {
 
     private $node: any = null;
+    public state: any = {
+        className: "",
+        modalId: ""
+    };
 
     public constructor(public props: IModalProps, context?: any) {
         super(props, context);
-        this.props.className = this.props.className || "fade";
+        this.state.className = this.props.className || "fade";
+        this.state.modalId = this.props.modalId || "modal-" + Math.round(Math.random() * 10000000000);
         this.props.buttons = this.props.buttons || [{ type: "secondary", text: "Close", closeModal: true }];
-        this.props.modalId = this.props.modalId || "modal-" + Math.round(Math.random() * 10000000000);
     }
 
     componentDidMount() {
@@ -65,7 +69,7 @@ export default class Modal extends React.Component<IModalProps, any> {
     }
 
   public render(): React.ReactElement<IModalProps> {
-    return (<div className={"modal " + (this.props.className || "")} role="dialog" id={this.props.modalId}>
+    return (<div className={"modal " + (this.state.className)} role="dialog" id={this.state.modalId}>
         <div className={`modal-dialog ${this.getModalSizeClass()}`} role="document">
             <div className="modal-content">
             <div className="modal-header">

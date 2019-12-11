@@ -39,9 +39,9 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
     data: []
   };
 
-  private GetData() {
+  private GetData(items: Promise<any[]>) {
     this.instance.beginCustomLoading("Retrieving Data...");
-    return this.props.items.then((data) => {
+    return items.then((data) => {
       this.instance.endCustomLoading();
       this.setState({ data: data }, () => this.forceUpdate());
       return data;
@@ -49,7 +49,7 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
   }
 
   public componentDidMount() {
-    this.GetData();
+    this.GetData(this.props.items);
   }
 
   public render(): React.ReactElement<ITimeSheetTableProps> {
@@ -123,7 +123,7 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
         onInitialized={(dx) => {
           this.instance = dx.component;
           if (typeof this.props.OnInitialized === "function")
-            this.props.OnInitialized(dx.component);
+            this.props.OnInitialized(dx.component, (items) => this.GetData(items));
         }}
       >
         {this.renderColumns()}

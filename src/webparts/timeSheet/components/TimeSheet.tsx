@@ -12,6 +12,7 @@ import QuickView from './TimesheetQuickView';
 import Payment from './ContractorPayment';
 import PaymentModal from './PaymentModal';
 import PaymentView from './PaymentView';
+import PaymentViewModal from './PaymentViewModal';
 
 import DataGrid, {
   Column,
@@ -215,6 +216,9 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
     );
   }
 
+  private showPaymentViewModal = null;
+  private hidePaymentViewModal = null;
+
   private renderPayments(): React.ReactElement<ITimeSheetProps> {
 
     let DeletePayment = (id) => {
@@ -230,6 +234,13 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
         <div>
           <div>
           {this.renderAdminTabs()}
+          <PaymentViewModal
+            OnMount={(show, hide) => {
+              this.showPaymentViewModal = show;
+              this.hidePaymentViewModal = hide;
+            }}
+            dataLayer={TimeSheet.DataLayer}
+          />
           <TimeSheetTable items={TimeSheet.DataLayer.GetPaymentEntries()}
             summary={
               {
@@ -252,7 +263,8 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
               dataField="Id"
               cellTemplate={($container, { data, value }) => {
                 ReactDom.render((<span>
-                  <button className="btn btn-sm btn-outline-secondary" onClick={() => this.ChangeViewState("paymentView", { invoiceId: data.Id })}>View</button>
+                  {/* <button className="btn btn-sm btn-outline-secondary" onClick={() => this.ChangeViewState("paymentView", { invoiceId: data.Id })}>View</button> */}
+                  <button className="btn btn-sm btn-outline-secondary" onClick={() => this.showPaymentViewModal(data.Id)}>View</button>
                   <span hidden={data.Status === "Paid"}>&nbsp;</span>
                   <button hidden={data.Status === "Paid"} className="btn btn-sm btn-outline-warning" onClick={() => DeletePayment(value)}>Delete</button>
                 </span>), $container);
@@ -589,6 +601,7 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
   private hideInvoiceModal = null;
   private showPaymentModal = null;
   private hidePaymentModal = null;
+  private adminEntryRefresh = null;
 
   private renderAdminEntryView(): React.ReactElement<ITimeSheetProps> {
     let baseFilter = new SPFilter("Approved", "eq", "1");
@@ -622,28 +635,40 @@ export default class TimeSheet extends React.Component<ITimeSheetProps, any> {
             this.hidePaymentModal = hide;
           }} />
         <TimeSheetData
+          OnInitialized={(component, refresh) => {
+            this.adminEntryRefresh = refresh;
+          }}
           summary={
             {
-            totalItems: [
-              {
-                column: "Contractor Pay",
-                summaryType: "sum",
-                customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
-            },
-            {
-              column: "Client Invoice Amt.",
-              summaryType: "sum",
-              customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
-          },
-            {
-                column: "Hours",
-                summaryType: "sum",
-                customizeText: ({ value, valueText }) => value
-            }
-            ]
-          }}
+              totalItems: [
+                {
+                  column: "Contractor Pay",
+                  summaryType: "sum",
+                  customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
+                },
+                {
+                  column: "Client Invoice Amt.",
+                  summaryType: "sum",
+                  customizeText: ({ value, valueText }) => `$ ${value ? value.toFixed(2) : "0.00"}`
+                },
+                {
+                  column: "Hours",
+                  summaryType: "sum",
+                  customizeText: ({ value, valueText }) => value
+                }
+              ]
+            }}
           items={items}
           customButtons={[
+            {
+              options: {
+                icon: "fa fa-refresh",
+                hint: "Reload Data"
+              },
+              onClick: () => {
+                this.adminEntryRefresh(TimeSheet.DataLayer.GetTimesheetEntries(baseFilter));
+              }
+            },
             {
               options: {
                 icon: "fa fa-file-text-o",

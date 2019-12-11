@@ -9,6 +9,9 @@ import RowSummary from './RowSummary';
 import Modal from './modal';
 import * as $ from 'jquery';
 
+import * as toastr from 'toastr';
+toastr.options.positionClass = "toast-bottom-right";
+
 export interface IInvoiceModalProps {
   dataLayer: DataLayer;
   OnSubmit?: () => void;
@@ -104,7 +107,12 @@ export default class InvoiceModal extends React.Component<IInvoiceModalProps, an
             text: "Submit Invoice",
             type: "primary",
             onClick: () => {
-              this.SubmitInvoice();
+              $(toastr.info("Submitting... Please wait")).css("background-color", "dodgerblue");
+              this.SubmitInvoice().then(() => {
+                $(toastr.success("Invoice Submitted")).css("background-color", "green");
+              }, () => {
+                $(toastr.warning("Invoice failed to submit")).css("background-color", "darkorange");
+              });
             }
           }
         ]}

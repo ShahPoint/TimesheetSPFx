@@ -4,9 +4,12 @@ import styles from './TimeSheet.module.scss';
 import { escape } from '@microsoft/sp-lodash-subset';
 
 import * as $ from 'jquery';
+// declare let jQuery: any;
+
+// console.log(jQuery.fn.extend)
 
 export interface IModalButton {
-    type: "primary" | "secondary" | "default";
+    type: "primary" | "secondary" | "default" | "success" | "warning";
     text: string;
     closeModal: boolean;
     onClick?: (e: any) => void;

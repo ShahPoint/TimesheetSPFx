@@ -10,6 +10,7 @@ export interface ITimeSheetDataProps {
   customButtons?: ITableButton[];
   summary?: any;
   OnCustomExport?: (d: any) => void;
+  OnInitialized?: (component: any, refresh: (items: Promise<any[]>) => void) => void;
 }
 
 export default class TimeSheet extends React.Component<ITimeSheetDataProps, any> {
@@ -23,6 +24,7 @@ export default class TimeSheet extends React.Component<ITimeSheetDataProps, any>
   public render(): React.ReactElement<ITimeSheetDataProps> {
     return (
       <TimeSheetTable 
+        OnInitialized={this.props.OnInitialized}
         items={this.props.items}
         customButtons={this.props.customButtons}
         selection={{

@@ -30,7 +30,8 @@
     "jquery": "^3.4.1",
     "office-ui-fabric-react": "^5.132.0",
     "react": "16.7.0",
-    "react-dom": "16.7.0"
+    "react-dom": "16.7.0",
+    "toastr": "^2.1.4"
   },
   "resolutions": {
     "@types/react": "16.7.22"

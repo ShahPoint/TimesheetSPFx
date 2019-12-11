@@ -8,6 +8,10 @@ import TimesheetUpload, { TimesheetRow } from './TimesheetUpload';
 import RowSummary from './RowSummary';
 import Modal from './modal';
 import * as $ from 'jquery';
+import 'toastr/build/toastr.css';
+
+import * as toastr from 'toastr';
+toastr.options.positionClass = "toast-bottom-right";
 
 export interface IPaymentModalProps {
   dataLayer: DataLayer;
@@ -104,7 +108,12 @@ export default class PaymentModal extends React.Component<IPaymentModalProps, an
             text: "Submit Payment",
             type: "primary",
             onClick: () => {
-              this.SubmitPayment();
+              $(toastr.info("Submitting... Please wait")).css("background-color", "dodgerblue");
+              this.SubmitPayment().then(() => {
+                $(toastr.success("Payment Submitted")).css("background-color", "green");
+              }, () => {
+                $(toastr.warning("Payment failed to submit")).css("background-color", "darkorange");
+              });
             }
           }
         ]}

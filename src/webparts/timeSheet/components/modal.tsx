@@ -33,6 +33,7 @@ export interface IModalProps {
 
 export default class Modal extends React.Component<IModalProps, any> {
 
+    private $parent: any = null;
     private $node: any = null;
     public state: any = {
         className: "",
@@ -46,12 +47,21 @@ export default class Modal extends React.Component<IModalProps, any> {
         this.props.buttons = this.props.buttons || [{ type: "secondary", text: "Close", closeModal: true }];
     }
 
+    componentWillUnmount() {
+        if (this.$parent !== null) {
+            this.$parent.append(this.$node);
+        }
+    }
+
     componentDidMount() {
         if (this.$node !== null) {
-
+            
         }
 
         this.$node = $(ReactDOM.findDOMNode(this));
+        this.$parent = this.$node.parent();
+        $("body").append(this.$node);
+
         (this.props.onMount || ((v) => {}))(this.$node);
 
         if (this.props.eventHandlers) {

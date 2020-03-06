@@ -72,6 +72,24 @@ export default class TimeSheetTable extends React.Component<ITimeSheetTableProps
       },
       searchPanel: { visible: true },
       columnChooser: { enabled: true },
+      onExporting: (e) => {
+        window["excelData"] = e;
+      },
+      onExported: () => {
+  
+        let e = window["excelData"];
+        e.cancel = true;
+        delete window["excelData"];
+  
+        setTimeout(() => {
+          let url = window.URL.createObjectURL(e.data);
+          let a = document.createElement("a");
+          a.href = url;
+          a.download = e.fileName;
+          a.click();
+          window.URL.revokeObjectURL(url);
+        }, 1);
+      },
       onToolbarPreparing: (e) => {
         let toolbarItems = e.toolbarOptions.items;
 
